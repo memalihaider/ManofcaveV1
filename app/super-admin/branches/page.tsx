@@ -18,9 +18,38 @@ export default function SuperAdminBranches() {
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  const handleViewBranch = (branchId: number) => {
+    router.push(`/super-admin/branches/${branchId}`);
+  };
+
+  const handleEditBranch = (branchId: number) => {
+    // For now, navigate to the branch details page
+    // In a real app, this might open an edit modal or navigate to an edit page
+    router.push(`/super-admin/branches/${branchId}`);
+  };
+
   const handleLogout = () => {
     logout();
     router.push('/login');
+  };
+
+  const handleAddBranch = () => {
+    router.push('/super-admin/branches/new');
+  };
+
+  const handleResetPassword = (branchId: number) => {
+    // In a real app, this would call an API to reset the password
+    const newPassword = `Br${branchId}2025!Reset`;
+    alert(`Password reset for branch ${branchId}. New password: ${newPassword}`);
+  };
+
+  const handleTogglePortalAccess = (branchId: number) => {
+    // In a real app, this would call an API to toggle portal access
+    alert(`Portal access toggled for branch ${branchId}`);
+  };
+
+  const handleViewCredentials = (branch: any) => {
+    alert(`Branch: ${branch.name}\nEmail: ${branch.email}\nPassword: ${branch.password}\nPortal Access: ${branch.portalAccess ? 'Enabled' : 'Disabled'}\nLast Login: ${branch.lastLogin}`);
   };
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -34,13 +63,17 @@ export default function SuperAdminBranches() {
       location: "123 Main St, Downtown",
       manager: "Sarah Johnson",
       phone: "(555) 123-4567",
+      email: "downtown@premiumcuts.com",
+      password: "Dt2025!Secure",
       employees: 8,
       revenue: 8920,
       customers: 234,
       rating: 4.9,
       status: "active",
       performance: "excellent",
-      image: "/api/placeholder/300/200"
+      image: "https://picsum.photos/300/200?random=1",
+      portalAccess: true,
+      lastLogin: "2025-12-04 14:30"
     },
     {
       id: 2,
@@ -48,13 +81,17 @@ export default function SuperAdminBranches() {
       location: "456 Oak Ave, Midtown",
       manager: "Mike Chen",
       phone: "(555) 234-5678",
+      email: "midtown@premiumcuts.com",
+      password: "Mt2025!Secure",
       employees: 6,
       revenue: 7650,
       customers: 198,
       rating: 4.8,
       status: "active",
       performance: "good",
-      image: "/api/placeholder/300/200"
+      image: "https://picsum.photos/300/200?random=2",
+      portalAccess: true,
+      lastLogin: "2025-12-04 09:15"
     },
     {
       id: 3,
@@ -62,13 +99,17 @@ export default function SuperAdminBranches() {
       location: "789 Pine Rd, Uptown",
       manager: "Alex Rodriguez",
       phone: "(555) 345-6789",
+      email: "uptown@premiumcuts.com",
+      password: "Ut2025!Secure",
       employees: 10,
       revenue: 9230,
       customers: 256,
       rating: 4.9,
       status: "active",
       performance: "excellent",
-      image: "/api/placeholder/300/200"
+      image: "https://picsum.photos/300/200?random=3",
+      portalAccess: true,
+      lastLogin: "2025-12-03 16:45"
     },
     {
       id: 4,
@@ -76,13 +117,17 @@ export default function SuperAdminBranches() {
       location: "321 Elm St, Suburb",
       manager: "Emma Davis",
       phone: "(555) 456-7890",
+      email: "suburban@premiumcuts.com",
+      password: "Sb2025!Secure",
       employees: 5,
       revenue: 6780,
       customers: 167,
       rating: 4.6,
       status: "active",
       performance: "good",
-      image: "/api/placeholder/300/200"
+      image: "https://picsum.photos/300/200?random=4",
+      portalAccess: true,
+      lastLogin: "2025-12-04 11:20"
     },
     {
       id: 5,
@@ -90,13 +135,17 @@ export default function SuperAdminBranches() {
       location: "654 Cedar Ln, Westside",
       manager: "John Smith",
       phone: "(555) 567-8901",
+      email: "westside@premiumcuts.com",
+      password: "Ws2025!Secure",
       employees: 7,
       revenue: 5420,
       customers: 142,
       rating: 4.5,
       status: "active",
       performance: "average",
-      image: "/api/placeholder/300/200"
+      image: "https://picsum.photos/300/200?random=5",
+      portalAccess: true,
+      lastLogin: "2025-12-02 13:10"
     },
     {
       id: 6,
@@ -104,13 +153,17 @@ export default function SuperAdminBranches() {
       location: "987 Maple Dr, Eastside",
       manager: "Lisa Brown",
       phone: "(555) 678-9012",
+      email: "eastside@premiumcuts.com",
+      password: "Es2025!Secure",
       employees: 6,
       revenue: 4980,
       customers: 128,
       rating: 4.4,
       status: "active",
       performance: "average",
-      image: "/api/placeholder/300/200"
+      image: "https://picsum.photos/300/200?random=6",
+      portalAccess: true,
+      lastLogin: "2025-12-01 15:30"
     },
     {
       id: 7,
@@ -118,13 +171,17 @@ export default function SuperAdminBranches() {
       location: "147 Birch Ave, Northgate",
       manager: "Tom Wilson",
       phone: "(555) 789-0123",
+      email: "northgate@premiumcuts.com",
+      password: "Ng2025!Secure",
       employees: 4,
       revenue: 3870,
       customers: 98,
       rating: 4.3,
       status: "active",
       performance: "needs_attention",
-      image: "/api/placeholder/300/200"
+      image: "https://picsum.photos/300/200?random=7",
+      portalAccess: false,
+      lastLogin: "Never"
     },
     {
       id: 8,
@@ -132,13 +189,17 @@ export default function SuperAdminBranches() {
       location: "258 Spruce St, Southpoint",
       manager: "Maria Garcia",
       phone: "(555) 890-1234",
+      email: "southpoint@premiumcuts.com",
+      password: "Sp2025!Secure",
       employees: 3,
       revenue: 2830,
       customers: 74,
       rating: 4.2,
       status: "inactive",
       performance: "needs_attention",
-      image: "/api/placeholder/300/200"
+      image: "https://picsum.photos/300/200?random=8",
+      portalAccess: false,
+      lastLogin: "Never"
     }
   ];
 
@@ -194,7 +255,7 @@ export default function SuperAdminBranches() {
                 </div>
               </div>
               <div className="flex items-center gap-4">
-                <Button className="bg-secondary hover:bg-secondary/90">
+                <Button className="bg-secondary hover:bg-secondary/90" onClick={handleAddBranch}>
                   <Plus className="w-4 h-4 mr-2" />
                   Add Branch
                 </Button>
@@ -343,6 +404,20 @@ export default function SuperAdminBranches() {
                           <span>{branch.phone}</span>
                         </div>
 
+                        {/* Branch Portal Credentials */}
+                        <div className="border-t pt-3">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-sm font-medium text-gray-700">Branch Portal</span>
+                            <Badge variant={branch.portalAccess ? "default" : "secondary"} className={branch.portalAccess ? "bg-green-100 text-green-800" : ""}>
+                              {branch.portalAccess ? "Active" : "Inactive"}
+                            </Badge>
+                          </div>
+                          <div className="text-xs text-gray-600 space-y-1">
+                            <div>Email: {branch.email}</div>
+                            <div>Last Login: {branch.lastLogin}</div>
+                          </div>
+                        </div>
+
                         <div className="grid grid-cols-3 gap-4 text-center">
                           <div>
                             <div className="text-lg font-bold text-green-600">${branch.revenue.toLocaleString()}</div>
@@ -362,11 +437,39 @@ export default function SuperAdminBranches() {
                         </div>
 
                         <div className="flex gap-2 pt-2">
-                          <Button variant="outline" size="sm" className="flex-1">
+                          <Button variant="outline" size="sm" className="flex-1" onClick={() => handleViewBranch(branch.id)}>
                             View Details
                           </Button>
-                          <Button variant="outline" size="sm" className="flex-1">
+                          <Button variant="outline" size="sm" className="flex-1" onClick={() => handleEditBranch(branch.id)}>
                             Edit
+                          </Button>
+                        </div>
+
+                        {/* Credential Management */}
+                        <div className="flex gap-2 pt-2 border-t">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="flex-1 text-xs" 
+                            onClick={() => handleViewCredentials(branch)}
+                          >
+                            Credentials
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="flex-1 text-xs" 
+                            onClick={() => handleResetPassword(branch.id)}
+                          >
+                            Reset Password
+                          </Button>
+                          <Button 
+                            variant={branch.portalAccess ? "destructive" : "default"} 
+                            size="sm" 
+                            className="flex-1 text-xs" 
+                            onClick={() => handleTogglePortalAccess(branch.id)}
+                          >
+                            {branch.portalAccess ? "Disable" : "Enable"}
                           </Button>
                         </div>
                       </div>

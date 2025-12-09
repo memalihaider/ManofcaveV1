@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { BookingModal } from '@/components/booking/BookingModal';
 import { Scissors, Star, Clock, MapPin, Search, Filter } from 'lucide-react';
 
 export default function ServicesPage() {
@@ -44,7 +45,8 @@ export default function ServicesPage() {
       branches: ["downtown", "midtown", "uptown", "suburban"],
       rating: 4.8,
       reviews: 124,
-      icon: Scissors
+      icon: Scissors,
+      image: "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80"
     },
     {
       id: 2,
@@ -56,7 +58,8 @@ export default function ServicesPage() {
       branches: ["downtown", "uptown"],
       rating: 4.9,
       reviews: 89,
-      icon: Scissors
+      icon: Scissors,
+      image: "https://images.unsplash.com/photo-1562322140-8baeececf3df?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2069&q=80"
     },
     {
       id: 3,
@@ -68,7 +71,8 @@ export default function ServicesPage() {
       branches: ["downtown", "midtown", "uptown", "suburban"],
       rating: 4.7,
       reviews: 156,
-      icon: Star
+      icon: Star,
+      image: "https://images.unsplash.com/photo-1622296089863-9a4bf8bb63df?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80"
     },
     {
       id: 4,
@@ -80,7 +84,8 @@ export default function ServicesPage() {
       branches: ["downtown", "uptown"],
       rating: 4.9,
       reviews: 78,
-      icon: Star
+      icon: Star,
+      image: "https://images.unsplash.com/photo-1582095133179-bfd08e2fc6b3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80"
     },
     {
       id: 5,
@@ -92,7 +97,8 @@ export default function ServicesPage() {
       branches: ["midtown", "uptown"],
       rating: 4.8,
       reviews: 92,
-      icon: Clock
+      icon: Clock,
+      image: "https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80"
     },
     {
       id: 6,
@@ -104,7 +110,8 @@ export default function ServicesPage() {
       branches: ["downtown", "midtown", "uptown"],
       rating: 4.6,
       reviews: 67,
-      icon: Clock
+      icon: Clock,
+      image: "https://images.unsplash.com/photo-1544161515-4ab6ce6db874?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80"
     },
     {
       id: 7,
@@ -116,7 +123,8 @@ export default function ServicesPage() {
       branches: ["downtown", "uptown"],
       rating: 4.9,
       reviews: 134,
-      icon: Scissors
+      icon: Scissors,
+      image: "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2071&q=80"
     },
     {
       id: 8,
@@ -128,7 +136,8 @@ export default function ServicesPage() {
       branches: ["uptown"],
       rating: 5.0,
       reviews: 45,
-      icon: Star
+      icon: Star,
+      image: "https://images.unsplash.com/photo-1596178060810-fb4bd482ee2c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80"
     },
   ];
 
@@ -199,32 +208,45 @@ export default function ServicesPage() {
         </div>
 
         {/* Services Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {filteredServices.map((service) => (
-            <Card key={service.id} className="hover:shadow-xl transition-shadow duration-300">
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <div className="w-12 h-12 bg-secondary/10 rounded-full flex items-center justify-center">
-                    <service.icon className="w-6 h-6 text-secondary" />
-                  </div>
-                  <Badge variant="secondary">
+            <Card key={service.id} className="hover:shadow-xl transition-all duration-300 overflow-hidden hover:-translate-y-1 min-h-[400px] flex flex-col">
+              <div className="relative overflow-hidden">
+                <img
+                  src={service.image}
+                  alt={`${service.name} service`}
+                  className="w-full h-48 object-cover hover:scale-110 transition-transform duration-700"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+                <div className="absolute top-2 right-2">
+                  <Badge className="bg-white/90 text-primary font-semibold shadow-lg text-xs">
                     {categories.find(cat => cat.id === service.category)?.name}
                   </Badge>
                 </div>
-                <CardTitle className="text-xl text-primary">{service.name}</CardTitle>
+              </div>
+              <CardHeader className="pb-3 flex-grow">
+                <div className="flex items-start justify-between">
+                  <div className="w-10 h-10 bg-secondary/10 rounded-full flex items-center justify-center">
+                    <service.icon className="w-5 h-5 text-secondary" />
+                  </div>
+                  <div className="flex items-center gap-1 text-sm text-gray-600">
+                    <Star className="w-4 h-4 fill-secondary text-secondary" />
+                    {service.rating}
+                  </div>
+                </div>
+                <CardTitle className="text-lg text-primary font-bold">{service.name}</CardTitle>
                 <div className="flex items-center gap-4 text-sm text-gray-600">
                   <div className="flex items-center gap-1">
                     <Clock className="w-4 h-4" />
                     {service.duration}
                   </div>
-                  <div className="flex items-center gap-1">
-                    <Star className="w-4 h-4 fill-secondary text-secondary" />
-                    {service.rating} ({service.reviews})
+                  <div className="text-sm text-gray-500">
+                    ({service.reviews} reviews)
                   </div>
                 </div>
               </CardHeader>
-              <CardContent>
-                <p className="text-gray-600 mb-4">{service.description}</p>
+              <CardContent className="pt-0 mt-auto">
+                <p className="text-gray-600 mb-4 text-sm leading-relaxed">{service.description}</p>
                 <div className="flex items-center justify-between mb-4">
                   <span className="text-2xl font-bold text-secondary">${service.price}</span>
                   <div className="flex items-center gap-1 text-sm text-gray-500">
@@ -232,9 +254,11 @@ export default function ServicesPage() {
                     {service.branches.length} branches
                   </div>
                 </div>
-                <Button asChild className="w-full bg-secondary hover:bg-secondary/90 text-primary">
-                  <Link href={`/booking?service=${service.id}`}>Book Now</Link>
-                </Button>
+                <BookingModal serviceId={service.id.toString()} serviceName={service.name}>
+                  <Button className="w-full bg-secondary hover:bg-secondary/90 text-primary">
+                    Book Now
+                  </Button>
+                </BookingModal>
               </CardContent>
             </Card>
           ))}
@@ -254,9 +278,11 @@ export default function ServicesPage() {
           <p className="mb-6 max-w-2xl mx-auto">
             Experience our premium grooming services at any of our locations
           </p>
-          <Button asChild size="lg" className="bg-secondary hover:bg-secondary/90 text-primary">
-            <Link href="/booking">Book Your Appointment</Link>
-          </Button>
+          <BookingModal>
+            <Button size="lg" className="bg-secondary hover:bg-secondary/90 text-primary">
+              Book Your Appointment
+            </Button>
+          </BookingModal>
         </div>
       </div>
     </div>

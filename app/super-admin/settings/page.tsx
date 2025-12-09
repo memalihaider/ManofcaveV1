@@ -10,8 +10,8 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
-import { Settings, User, Bell, Shield, Palette, Database, Mail, Phone, MapPin, Clock, Save, RefreshCw } from "lucide-react";
-import ProtectedRoute from "@/components/ProtectedRoute";
+import { Settings, User, Bell, Shield, Palette, Database, Mail, Phone, MapPin, Clock, Save, RefreshCw, Plus, Trash2, MessageSquare, FileText, CreditCard } from "lucide-react";
+import { PermissionProtectedRoute, PermissionProtectedSection } from "@/components/PermissionProtected";
 import { AdminSidebar, AdminMobileSidebar } from "@/components/admin/AdminSidebar";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
@@ -37,7 +37,7 @@ export default function SuperAdminSettings() {
     businessState: "NY",
     businessZip: "10001",
     timezone: "America/New_York",
-    currency: "USD",
+    currency: "AED",
 
     // Notification Settings
     emailNotifications: true,
@@ -64,7 +64,50 @@ export default function SuperAdminSettings() {
     backupFrequency: "daily",
     dataRetention: "365",
     maintenanceMode: false,
-    debugMode: false
+    debugMode: false,
+    taxRate: "8.25",
+    smsProvider: "twilio",
+    senderId: "LuxuryBarbershop",
+    requireTermsAcceptance: true,
+    autoUpdateTerms: false
+  });
+
+  const [paymentMethods, setPaymentMethods] = useState([
+    { id: 1, name: "Stripe", apiKey: "", secretKey: "", enabled: true },
+    { id: 2, name: "PayPal", apiKey: "", secretKey: "", enabled: false }
+  ]);
+
+  const [smsContent, setSmsContent] = useState({
+    approval: "Your booking has been approved! We're excited to see you on {date} at {time}.",
+    pending: "Your booking request is pending approval. We'll notify you once confirmed.",
+    upcoming: "Reminder: You have a booking tomorrow at {time} with {staff}.",
+    rejection: "Unfortunately, your booking request could not be accommodated. Please try another time.",
+    offers: "Special offer: {offer} available now! Book your appointment today.",
+    general: "Thank you for choosing our services. We look forward to serving you."
+  });
+
+  const [termsContent, setTermsContent] = useState({
+    title: "Terms and Conditions",
+    content: `# Terms and Conditions
+
+## 1. Introduction
+Welcome to our barbershop services. These terms and conditions govern your use of our services.
+
+## 2. Booking Policy
+- Bookings must be made in advance
+- Cancellations require 24-hour notice
+- Late arrivals may result in shortened services
+
+## 3. Payment Terms
+- Payment is due at the time of service
+- We accept cash, credit cards, and digital payments
+- Refunds are processed within 7 business days
+
+## 4. Liability
+We are not liable for any indirect or consequential damages arising from our services.
+
+## 5. Contact Information
+For any questions, please contact us at admin@luxurybarbershop.com`
   });
 
   const handleSave = () => {
@@ -80,7 +123,7 @@ export default function SuperAdminSettings() {
   };
 
   return (
-    <ProtectedRoute requiredRole="super_admin">
+    <PermissionProtectedRoute requiredPermissions={['settings.view']}>
       <div className="flex h-screen bg-gray-50">
         {/* Sidebar */}
         <AdminSidebar role="super_admin" onLogout={handleLogout}
@@ -125,7 +168,7 @@ export default function SuperAdminSettings() {
           <div className="flex-1 overflow-auto">
             <div className="p-4 lg:p-8">
               <Tabs defaultValue="general" className="space-y-6">
-                <TabsList className="grid w-full grid-cols-5">
+                <TabsList className="grid w-full grid-cols-8">
                   <TabsTrigger value="general" className="flex items-center gap-2">
                     <Settings className="w-4 h-4" />
                     General
@@ -146,6 +189,24 @@ export default function SuperAdminSettings() {
                     <Database className="w-4 h-4" />
                     System
                   </TabsTrigger>
+                  <PermissionProtectedSection requiredPermissions={['payment_methods.view']}>
+                    <TabsTrigger value="payment-methods" className="flex items-center gap-2">
+                      <CreditCard className="w-4 h-4" />
+                      Payment Methods
+                    </TabsTrigger>
+                  </PermissionProtectedSection>
+                  <PermissionProtectedSection requiredPermissions={['sms_content.view']}>
+                    <TabsTrigger value="sms" className="flex items-center gap-2">
+                      <MessageSquare className="w-4 h-4" />
+                      SMS Content
+                    </TabsTrigger>
+                  </PermissionProtectedSection>
+                  <PermissionProtectedSection requiredPermissions={['terms.view']}>
+                    <TabsTrigger value="terms" className="flex items-center gap-2">
+                      <FileText className="w-4 h-4" />
+                      Terms & Conditions
+                    </TabsTrigger>
+                  </PermissionProtectedSection>
                 </TabsList>
 
                 {/* General Settings */}
@@ -562,11 +623,365 @@ export default function SuperAdminSettings() {
                     </CardContent>
                   </Card>
                 </TabsContent>
+
+                {/* Payment Methods */}
+                <PermissionProtectedSection requiredPermissions={['payment_methods.view']}>
+                  <TabsContent value="payment-methods">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Payment Methods Configuration</CardTitle>
+                      <CardDescription>Configure payment gateways and processing options</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h3 className="text-lg font-medium">Payment Gateways</h3>
+                          <p className="text-sm text-gray-600">Manage your payment processing integrations</p>
+                        </div>
+                        <Button
+                          onClick={() => setPaymentMethods([...paymentMethods, {
+                            id: Date.now(),
+                            name: "",
+                            apiKey: "",
+                            secretKey: "",
+                            enabled: false
+                          }])}
+                          className="flex items-center gap-2"
+                        >
+                          <Plus className="w-4 h-4" />
+                          Add Gateway
+                        </Button>
+                      </div>
+
+                      <div className="space-y-4">
+                        {paymentMethods.map((method, index) => (
+                          <Card key={method.id} className="p-4">
+                            <div className="flex items-center justify-between mb-4">
+                              <h4 className="font-medium">{method.name || `Gateway ${index + 1}`}</h4>
+                              <div className="flex items-center gap-2">
+                                <Switch
+                                  checked={method.enabled}
+                                  onCheckedChange={(checked) => {
+                                    const updated = [...paymentMethods];
+                                    updated[index].enabled = checked;
+                                    setPaymentMethods(updated);
+                                  }}
+                                />
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => setPaymentMethods(paymentMethods.filter(m => m.id !== method.id))}
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                              <div className="space-y-2">
+                                <Label>Gateway Name</Label>
+                                <Input
+                                  value={method.name}
+                                  onChange={(e) => {
+                                    const updated = [...paymentMethods];
+                                    updated[index].name = e.target.value;
+                                    setPaymentMethods(updated);
+                                  }}
+                                  placeholder="e.g., Stripe, PayPal"
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <Label>API Key</Label>
+                                <Input
+                                  type="password"
+                                  value={method.apiKey}
+                                  onChange={(e) => {
+                                    const updated = [...paymentMethods];
+                                    updated[index].apiKey = e.target.value;
+                                    setPaymentMethods(updated);
+                                  }}
+                                  placeholder="Enter API key"
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <Label>Secret Key</Label>
+                                <Input
+                                  type="password"
+                                  value={method.secretKey}
+                                  onChange={(e) => {
+                                    const updated = [...paymentMethods];
+                                    updated[index].secretKey = e.target.value;
+                                    setPaymentMethods(updated);
+                                  }}
+                                  placeholder="Enter secret key"
+                                />
+                              </div>
+                            </div>
+                          </Card>
+                        ))}
+                      </div>
+
+                      <Separator />
+
+                      <div className="space-y-4">
+                        <h3 className="text-lg font-medium">Payment Settings</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div className="space-y-2">
+                            <Label>Currency</Label>
+                            <Select value={settings.currency} onValueChange={(value) => handleInputChange('currency', value)}>
+                              <SelectTrigger>
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="USD">USD ($)</SelectItem>
+                                <SelectItem value="EUR">EUR (€)</SelectItem>
+                                <SelectItem value="GBP">GBP (£)</SelectItem>
+                                <SelectItem value="CAD">CAD (C$)</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Tax Rate (%)</Label>
+                            <Input
+                              type="number"
+                              placeholder="8.25"
+                              value={settings.taxRate || ""}
+                              onChange={(e) => handleInputChange('taxRate', e.target.value)}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+                </PermissionProtectedSection>
+
+                {/* SMS Content */}
+                <PermissionProtectedSection requiredPermissions={['sms_content.view']}>
+                  <TabsContent value="sms">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>SMS Content Templates</CardTitle>
+                      <CardDescription>Customize SMS messages sent to customers for different scenarios</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                      <div className="space-y-6">
+                        {/* Approval Message */}
+                        <div className="space-y-3">
+                          <div className="flex items-center gap-2">
+                            <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                            <Label className="text-base font-medium">Booking Approval</Label>
+                          </div>
+                          <Textarea
+                            value={smsContent.approval}
+                            onChange={(e) => setSmsContent({...smsContent, approval: e.target.value})}
+                            placeholder="Enter approval message template"
+                            rows={3}
+                          />
+                          <p className="text-sm text-gray-600">
+                            Available placeholders: {'{date}'}, {'{time}'}, {'{staff}'}, {'{service}'}
+                          </p>
+                        </div>
+
+                        {/* Pending Message */}
+                        <div className="space-y-3">
+                          <div className="flex items-center gap-2">
+                            <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                            <Label className="text-base font-medium">Booking Pending</Label>
+                          </div>
+                          <Textarea
+                            value={smsContent.pending}
+                            onChange={(e) => setSmsContent({...smsContent, pending: e.target.value})}
+                            placeholder="Enter pending message template"
+                            rows={3}
+                          />
+                          <p className="text-sm text-gray-600">
+                            Available placeholders: {'{date}'}, {'{time}'}
+                          </p>
+                        </div>
+
+                        {/* Upcoming Message */}
+                        <div className="space-y-3">
+                          <div className="flex items-center gap-2">
+                            <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                            <Label className="text-base font-medium">Upcoming Appointment Reminder</Label>
+                          </div>
+                          <Textarea
+                            value={smsContent.upcoming}
+                            onChange={(e) => setSmsContent({...smsContent, upcoming: e.target.value})}
+                            placeholder="Enter reminder message template"
+                            rows={3}
+                          />
+                          <p className="text-sm text-gray-600">
+                            Available placeholders: {'{time}'}, {'{staff}'}, {'{service}'}
+                          </p>
+                        </div>
+
+                        {/* Rejection Message */}
+                        <div className="space-y-3">
+                          <div className="flex items-center gap-2">
+                            <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                            <Label className="text-base font-medium">Booking Rejection</Label>
+                          </div>
+                          <Textarea
+                            value={smsContent.rejection}
+                            onChange={(e) => setSmsContent({...smsContent, rejection: e.target.value})}
+                            placeholder="Enter rejection message template"
+                            rows={3}
+                          />
+                          <p className="text-sm text-gray-600">
+                            Available placeholders: {'{date}'}, {'{time}'}
+                          </p>
+                        </div>
+
+                        {/* Offers Message */}
+                        <div className="space-y-3">
+                          <div className="flex items-center gap-2">
+                            <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
+                            <Label className="text-base font-medium">Special Offers</Label>
+                          </div>
+                          <Textarea
+                            value={smsContent.offers}
+                            onChange={(e) => setSmsContent({...smsContent, offers: e.target.value})}
+                            placeholder="Enter offers message template"
+                            rows={3}
+                          />
+                          <p className="text-sm text-gray-600">
+                            Available placeholders: {'{offer}'}, {'{discount}'}, {'{validity}'}
+                          </p>
+                        </div>
+
+                        {/* General Message */}
+                        <div className="space-y-3">
+                          <div className="flex items-center gap-2">
+                            <div className="w-3 h-3 bg-gray-500 rounded-full"></div>
+                            <Label className="text-base font-medium">General Messages</Label>
+                          </div>
+                          <Textarea
+                            value={smsContent.general}
+                            onChange={(e) => setSmsContent({...smsContent, general: e.target.value})}
+                            placeholder="Enter general message template"
+                            rows={3}
+                          />
+                          <p className="text-sm text-gray-600">
+                            General purpose messages and confirmations
+                          </p>
+                        </div>
+                      </div>
+
+                      <Separator />
+
+                      <div className="space-y-4">
+                        <h3 className="text-lg font-medium">SMS Settings</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div className="space-y-2">
+                            <Label>SMS Provider</Label>
+                            <Select value={settings.smsProvider || "twilio"} onValueChange={(value) => handleInputChange('smsProvider', value)}>
+                              <SelectTrigger>
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="twilio">Twilio</SelectItem>
+                                <SelectItem value="aws-sns">AWS SNS</SelectItem>
+                                <SelectItem value="messagebird">MessageBird</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Sender ID</Label>
+                            <Input
+                              value={settings.senderId || ""}
+                              onChange={(e) => handleInputChange('senderId', e.target.value)}
+                              placeholder="Your business name"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+                </PermissionProtectedSection>
+
+                {/* Terms & Conditions */}
+                <PermissionProtectedSection requiredPermissions={['terms.view']}>
+                  <TabsContent value="terms">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Terms and Conditions</CardTitle>
+                      <CardDescription>Manage your business terms and conditions content</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                      <div className="space-y-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="termsTitle">Document Title</Label>
+                          <Input
+                            id="termsTitle"
+                            value={termsContent.title}
+                            onChange={(e) => setTermsContent({...termsContent, title: e.target.value})}
+                            placeholder="Terms and Conditions"
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="termsContent">Content (Markdown supported)</Label>
+                          <Textarea
+                            id="termsContent"
+                            value={termsContent.content}
+                            onChange={(e) => setTermsContent({...termsContent, content: e.target.value})}
+                            placeholder="Enter your terms and conditions content here..."
+                            rows={20}
+                            className="font-mono text-sm"
+                          />
+                        </div>
+                      </div>
+
+                      <Separator />
+
+                      <div className="space-y-4">
+                        <h3 className="text-lg font-medium">Preview</h3>
+                        <Card className="p-4 bg-gray-50">
+                          <h2 className="text-xl font-bold mb-4">{termsContent.title}</h2>
+                          <div className="prose prose-sm max-w-none">
+                            <pre className="whitespace-pre-wrap text-sm">{termsContent.content}</pre>
+                          </div>
+                        </Card>
+                      </div>
+
+                      <Separator />
+
+                      <div className="space-y-4">
+                        <h3 className="text-lg font-medium">Settings</h3>
+                        <div className="flex items-center justify-between">
+                          <div className="space-y-0.5">
+                            <Label>Require acceptance on booking</Label>
+                            <p className="text-sm text-gray-600">Customers must accept terms before booking</p>
+                          </div>
+                          <Switch
+                            checked={settings.requireTermsAcceptance || false}
+                            onCheckedChange={(checked) => handleInputChange('requireTermsAcceptance', checked)}
+                          />
+                        </div>
+
+                        <div className="flex items-center justify-between">
+                          <div className="space-y-0.5">
+                            <Label>Auto-update customer agreements</Label>
+                            <p className="text-sm text-gray-600">Automatically update existing customer agreements</p>
+                          </div>
+                          <Switch
+                            checked={settings.autoUpdateTerms || false}
+                            onCheckedChange={(checked) => handleInputChange('autoUpdateTerms', checked)}
+                          />
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+                </PermissionProtectedSection>
               </Tabs>
             </div>
           </div>
         </div>
       </div>
-    </ProtectedRoute>
+    </PermissionProtectedRoute>
   );
 }

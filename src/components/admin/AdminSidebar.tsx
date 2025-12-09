@@ -39,7 +39,8 @@ import {
   ChevronLeft,
   ChevronRight,
   MessageCircle,
-  Tag
+  Tag,
+  User
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -91,9 +92,24 @@ const branchAdminNavItems = [
     icon: TrendingUp,
   },
   {
+    title: 'Reports',
+    href: '/admin/reports',
+    icon: PieChart,
+  },
+  {
+    title: 'Users',
+    href: '/admin/users',
+    icon: Users,
+  },
+  {
     title: 'Messages',
     href: '/admin/messages',
     icon: MessageCircle,
+  },
+  {
+    title: 'Profile',
+    href: '/admin/profile',
+    icon: User,
   },
   {
     title: 'Settings',
@@ -167,6 +183,11 @@ const superAdminNavItems = [
     title: 'Financial',
     href: '/super-admin/financial',
     icon: DollarSign,
+  },
+  {
+    title: 'Profile',
+    href: '/super-admin/profile',
+    icon: User,
   },
   {
     title: 'Settings',

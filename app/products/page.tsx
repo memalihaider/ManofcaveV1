@@ -9,11 +9,13 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ShoppingCart, Star, Package, Search, Filter } from 'lucide-react';
+import { useCartStore } from '@/stores/cart.store';
 
 export default function ProductsPage() {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [priceRange, setPriceRange] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const { addItem, getItemCount } = useCartStore();
 
   const categories = [
     { id: 'all', name: 'All Categories' },
@@ -43,7 +45,7 @@ export default function ProductsPage() {
       rating: 4.8,
       reviews: 156,
       inStock: true,
-      image: "/api/placeholder/300/300",
+      image: "https://images.unsplash.com/photo-1556228720-195a672e8a03?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
       tags: ["Organic", "Sulfate-Free"]
     },
     {
@@ -55,7 +57,7 @@ export default function ProductsPage() {
       rating: 4.7,
       reviews: 203,
       inStock: true,
-      image: "/api/placeholder/300/300",
+      image: "https://images.unsplash.com/photo-1621605815971-fbc98d665033?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2071&q=80",
       tags: ["Natural", "Non-Greasy"]
     },
     {
@@ -67,7 +69,7 @@ export default function ProductsPage() {
       rating: 4.6,
       reviews: 89,
       inStock: true,
-      image: "/api/placeholder/300/300",
+      image: "https://images.unsplash.com/photo-1585747860715-2ba37e788b70?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2074&q=80",
       tags: ["Water-Based", "Strong Hold"]
     },
     {
@@ -79,7 +81,7 @@ export default function ProductsPage() {
       rating: 4.9,
       reviews: 124,
       inStock: true,
-      image: "/api/placeholder/300/300",
+      image: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
       tags: ["Alcohol-Free", "Hydrating"]
     },
     {
@@ -92,7 +94,7 @@ export default function ProductsPage() {
       rating: 4.8,
       reviews: 67,
       inStock: true,
-      image: "/api/placeholder/300/300",
+      image: "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2071&q=80",
       tags: ["Bundle", "Professional"]
     },
     {
@@ -104,7 +106,7 @@ export default function ProductsPage() {
       rating: 4.7,
       reviews: 98,
       inStock: false,
-      image: "/api/placeholder/300/300",
+      image: "https://images.unsplash.com/photo-1559599101-f09722fb4948?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2069&q=80",
       tags: ["Deep Conditioning", "Repair"]
     },
     {
@@ -116,7 +118,7 @@ export default function ProductsPage() {
       rating: 4.5,
       reviews: 145,
       inStock: true,
-      image: "/api/placeholder/300/300",
+      image: "https://images.unsplash.com/photo-1622296089863-9a4bf8bb63df?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
       tags: ["Medium Hold", "Conditioning"]
     },
     {
@@ -128,7 +130,7 @@ export default function ProductsPage() {
       rating: 4.4,
       reviews: 76,
       inStock: true,
-      image: "/api/placeholder/300/300",
+      image: "https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
       tags: ["Gentle", "Daily Use"]
     },
   ];
@@ -208,19 +210,22 @@ export default function ProductsPage() {
         {/* Products Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
           {filteredProducts.map((product) => (
-            <Card key={product.id} className="hover:shadow-xl transition-shadow duration-300">
+            <Card key={product.id} className="hover:shadow-xl transition-all duration-300 overflow-hidden hover:-translate-y-1">
               <CardHeader className="p-0">
-                <div className="relative">
-                  <div className="w-full h-48 bg-gradient-to-br from-secondary/20 to-accent/20 rounded-t-lg flex items-center justify-center">
-                    <Package className="w-16 h-16 text-secondary/60" />
-                  </div>
+                <div className="relative overflow-hidden">
+                  <img
+                    src={product.image}
+                    alt={`${product.name} product`}
+                    className="w-full h-48 object-cover hover:scale-110 transition-transform duration-700"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
                   {!product.inStock && (
                     <Badge variant="destructive" className="absolute top-2 right-2">
                       Out of Stock
                     </Badge>
                   )}
                   {product.originalPrice && (
-                    <Badge variant="secondary" className="absolute top-2 left-2">
+                    <Badge variant="secondary" className="absolute top-2 left-2 bg-primary text-white">
                       Sale
                     </Badge>
                   )}
@@ -257,6 +262,12 @@ export default function ProductsPage() {
                 <Button
                   className="w-full bg-secondary hover:bg-secondary/90 text-primary"
                   disabled={!product.inStock}
+                  onClick={() => product.inStock && addItem({
+                    id: product.id,
+                    name: product.name,
+                    price: product.price,
+                    image: product.image
+                  })}
                 >
                   <ShoppingCart className="w-4 h-4 mr-2" />
                   {product.inStock ? 'Add to Cart' : 'Out of Stock'}
@@ -264,6 +275,16 @@ export default function ProductsPage() {
               </CardContent>
             </Card>
           ))}
+        </div>
+
+        {/* View Cart Link */}
+        <div className="text-center mt-8">
+          <Link href="/cart">
+            <Button variant="outline" size="lg" className="bg-secondary/10 hover:bg-secondary/20">
+              <ShoppingCart className="w-5 h-5 mr-2" />
+              View Cart ({getItemCount()} items)
+            </Button>
+          </Link>
         </div>
 
         {filteredProducts.length === 0 && (

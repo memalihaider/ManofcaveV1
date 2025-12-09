@@ -79,11 +79,43 @@ export function AdvancedCalendar({ appointments, onAppointmentClick, onStatusCha
     return isSameDate && isSameBarber;
   });
 
-  // Get appointment for specific time slot and barber
+  // Get appointment for specific time slot and barber (considering duration)
   const getAppointmentForSlot = (timeSlot: string, barber: string) => {
-    return filteredAppointments.find(apt =>
-      apt.time === timeSlot && apt.barber === barber
-    );
+    return filteredAppointments.find(apt => {
+      if (apt.barber !== barber) return false;
+
+      // Parse appointment time and duration
+      const aptTime = apt.time; // e.g., "10:00"
+      const durationMatch = apt.duration.match(/(\d+)/);
+      const durationMinutes = durationMatch ? parseInt(durationMatch[1]) : timeSlotGap;
+
+      // Calculate how many slots this appointment spans
+      const aptStartTime = new Date(`2000-01-01T${aptTime}`);
+      const slotTime = new Date(`2000-01-01T${timeSlot}`);
+      const aptEndTime = addMinutes(aptStartTime, durationMinutes);
+
+      // Check if current slot falls within appointment time range
+      return slotTime >= aptStartTime && slotTime < aptEndTime;
+    });
+  };
+
+  // Get the main appointment (starting slot) for display purposes
+  const getMainAppointmentForSlot = (timeSlot: string, barber: string) => {
+    return filteredAppointments.find(apt => {
+      if (apt.barber !== barber) return false;
+      return apt.time === timeSlot;
+    });
+  };
+
+  // Check if slot is part of a multi-slot appointment
+  const isSlotPartOfAppointment = (timeSlot: string, barber: string) => {
+    return !!getAppointmentForSlot(timeSlot, barber);
+  };
+
+  // Check if slot is the starting slot of an appointment
+  const isStartingSlot = (timeSlot: string, barber: string) => {
+    const appointment = getMainAppointmentForSlot(timeSlot, barber);
+    return !!appointment;
   };
 
   const getStatusColor = (status: string) => {
@@ -300,15 +332,20 @@ export function AdvancedCalendar({ appointments, onAppointmentClick, onStatusCha
                     </div>
                     {timeSlots.map(slot => {
                       const appointment = getAppointmentForSlot(slot, barber);
+                      const isStarting = isStartingSlot(slot, barber);
+                      const isPartOfAppointment = isSlotPartOfAppointment(slot, barber);
+
                       return (
                         <div
                           key={`${barber}-${slot}`}
                           className={`p-1 border rounded cursor-pointer hover:shadow-md transition-all duration-200 min-h-[60px] flex items-center justify-center ${
-                            appointment ? 'border-2 border-primary/50 bg-primary/5' : 'border-dashed border-muted-foreground/30 hover:border-muted-foreground/50'
+                            isPartOfAppointment
+                              ? `border-2 border-primary/50 ${getStatusColor(appointment?.status || 'scheduled')}/20`
+                              : 'border-dashed border-muted-foreground/30 hover:border-muted-foreground/50'
                           }`}
                           onClick={() => appointment && onAppointmentClick(appointment)}
                         >
-                          {appointment ? (
+                          {isStarting && appointment ? (
                             <div className="w-full h-full flex flex-col items-center justify-center text-xs p-1">
                               <div className={`w-3 h-3 rounded-full mb-1 ${getStatusColor(appointment.status)}`} />
                               <div className="font-medium truncate w-full text-center leading-tight">
@@ -317,6 +354,13 @@ export function AdvancedCalendar({ appointments, onAppointmentClick, onStatusCha
                               <div className="text-muted-foreground truncate w-full text-center text-[10px] leading-tight">
                                 {appointment.service}
                               </div>
+                              <div className="text-muted-foreground text-[9px] mt-1">
+                                {appointment.duration}
+                              </div>
+                            </div>
+                          ) : isPartOfAppointment ? (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <div className={`w-2 h-2 rounded-full ${getStatusColor(appointment?.status || 'scheduled')}`} />
                             </div>
                           ) : (
                             <div
@@ -364,15 +408,20 @@ export function AdvancedCalendar({ appointments, onAppointmentClick, onStatusCha
                     <div className="grid gap-1" style={{ gridTemplateColumns: `repeat(${(selectedBarber === 'all' ? barbers : [selectedBarber]).length}, minmax(60px, 1fr))` }}>
                       {(selectedBarber === 'all' ? barbers : [selectedBarber]).map(barber => {
                         const appointment = getAppointmentForSlot(slot, barber);
+                        const isStarting = isStartingSlot(slot, barber);
+                        const isPartOfAppointment = isSlotPartOfAppointment(slot, barber);
+
                         return (
                           <div
                             key={`${slot}-${barber}`}
                             className={`p-1 border rounded cursor-pointer hover:shadow-md transition-all duration-200 min-h-[80px] flex items-center justify-center ${
-                              appointment ? 'border-2 border-primary/50 bg-primary/5' : 'border-dashed border-muted-foreground/30 hover:border-muted-foreground/50'
+                              isPartOfAppointment
+                                ? `border-2 border-primary/50 ${getStatusColor(appointment?.status || 'scheduled')}/20`
+                                : 'border-dashed border-muted-foreground/30 hover:border-muted-foreground/50'
                             }`}
                             onClick={() => appointment && onAppointmentClick(appointment)}
                           >
-                            {appointment ? (
+                            {isStarting && appointment ? (
                               <div className="w-full h-full flex flex-col items-center justify-center text-xs p-1">
                                 <div className={`w-3 h-3 rounded-full mb-1 ${getStatusColor(appointment.status)}`} />
                                 <div className="font-medium truncate w-full text-center leading-tight">
@@ -381,6 +430,13 @@ export function AdvancedCalendar({ appointments, onAppointmentClick, onStatusCha
                                 <div className="text-muted-foreground truncate w-full text-center text-[10px] leading-tight">
                                   {appointment.service}
                                 </div>
+                                <div className="text-muted-foreground text-[9px] mt-1">
+                                  {appointment.duration}
+                                </div>
+                              </div>
+                            ) : isPartOfAppointment ? (
+                              <div className="w-full h-full flex items-center justify-center">
+                                <div className={`w-2 h-2 rounded-full ${getStatusColor(appointment?.status || 'scheduled')}`} />
                               </div>
                             ) : (
                               <div
@@ -432,6 +488,10 @@ export function AdvancedCalendar({ appointments, onAppointmentClick, onStatusCha
                 <div className="w-3 h-3 rounded-full bg-red-500" />
                 <span>Cancelled/Rejected</span>
               </div>
+              <div className="flex items-center gap-2 ml-4 pl-4 border-l">
+                <div className="w-2 h-2 rounded-full bg-blue-500" />
+                <span className="text-muted-foreground">Duration slots</span>
+              </div>
             </div>
 
             <div className="text-xs text-muted-foreground">
@@ -445,7 +505,7 @@ export function AdvancedCalendar({ appointments, onAppointmentClick, onStatusCha
 
           {/* Mobile responsiveness note */}
           <div className="text-xs text-muted-foreground bg-muted/50 p-3 rounded-lg">
-            💡 <strong>Tip:</strong> Scroll horizontally on mobile to view all time slots. Use the Settings panel to customize business hours and hide specific hours.
+            💡 <strong>Duration Highlighting:</strong> Booked services span multiple time slots based on their duration (e.g., 60min service occupies 2x 30min slots). The starting slot shows full details, while subsequent slots show status indicators.
           </div>
         </div>
       </CardContent>

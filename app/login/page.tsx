@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -86,7 +87,15 @@ export default function LoginPage() {
               {isLoading ? 'Signing in...' : 'Sign In'}
             </Button>
           </form>
-          <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+          <div className="mt-6 border-t pt-6">
+            <p className="text-sm text-gray-600 text-center mb-4">
+              Don't have an account?{' '}
+              <Link href="/signup" className="text-secondary hover:text-secondary/80 font-semibold">
+                Sign Up
+              </Link>
+            </p>
+          </div>
+          <div className="p-4 bg-gray-50 rounded-lg">
             <p className="text-sm text-gray-600 mb-2">Demo Credentials:</p>
             <div className="text-xs text-gray-500 space-y-1">
               <p><strong>Branch Admin:</strong> admin@branch1.com / admin123</p>

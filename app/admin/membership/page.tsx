@@ -122,6 +122,7 @@ export default function AdminMembership() {
   const { getServicesByBranch } = useServicesStore();
   const services = getServicesByBranch(adminBranchId);
   const [dialogType, setDialogType] = useState<'offer' | 'promo' | 'loyalty' | 'cashback'>('offer');
+  const [imageSource, setImageSource] = useState<'file' | 'url'>('file');
 
   // Form states
   const [offerForm, setOfferForm] = useState({
@@ -663,6 +664,11 @@ export default function AdminMembership() {
                         </div>
                       </CardHeader>
                       <CardContent>
+                        {offer.image && (
+                          <div className="mb-4">
+                            <img src={offer.image} alt={offer.title} className="w-full h-40 object-cover rounded-md border border-gray-200" />
+                          </div>
+                        )}
                         <p className="text-sm text-gray-600 mb-4">{offer.description}</p>
                         <div className="space-y-2">
                           {offer.applicableServices && offer.applicableServices.length > 0 && (
@@ -673,7 +679,7 @@ export default function AdminMembership() {
                           <div className="flex justify-between text-sm">
                             <span className="text-gray-600">Discount:</span>
                             <span className="font-medium">
-                              {offer.discountType === 'percentage' ? `${offer.discountValue}%` : `$${offer.discountValue}`}
+                              {offer.discountType === 'percentage' ? `${offer.discountValue}%` : `AED ${offer.discountValue}`}
                             </span>
                           </div>
                           <div className="flex justify-between text-sm">
@@ -764,13 +770,13 @@ export default function AdminMembership() {
                           <div className="flex justify-between text-sm">
                             <span className="text-gray-600">Discount:</span>
                             <span className="font-medium">
-                              {promo.discountType === 'percentage' ? `${promo.discountValue}%` : `$${promo.discountValue}`}
+                              {promo.discountType === 'percentage' ? `${promo.discountValue}%` : `AED ${promo.discountValue}`}
                             </span>
                           </div>
                           {promo.minimumPurchase && (
                             <div className="flex justify-between text-sm">
                               <span className="text-gray-600">Min. Purchase:</span>
-                              <span className="font-medium">${promo.minimumPurchase}</span>
+                              <span className="font-medium">AED {promo.minimumPurchase}</span>
                             </div>
                           )}
                           <div className="flex justify-between text-sm">
@@ -860,7 +866,7 @@ export default function AdminMembership() {
                           </div>
                           <div className="flex justify-between text-sm">
                             <span className="text-gray-600">Redemption Rate:</span>
-                            <span className="font-medium">${program.redemptionRate}/point</span>
+                            <span className="font-medium">AED {program.redemptionRate}/point</span>
                           </div>
                           <div className="flex justify-between text-sm">
                             <span className="text-gray-600">Min. Points:</span>
@@ -944,13 +950,13 @@ export default function AdminMembership() {
                           <div className="flex justify-between text-sm">
                             <span className="text-gray-600">Cashback:</span>
                             <span className="font-medium">
-                              {program.cashbackType === 'percentage' ? `${program.cashbackValue}%` : `$${program.cashbackValue}`}
+                              {program.cashbackType === 'percentage' ? `${program.cashbackValue}%` : `AED ${program.cashbackValue}`}
                             </span>
                           </div>
                           {program.minimumPurchase && (
                             <div className="flex justify-between text-sm">
                               <span className="text-gray-600">Min. Purchase:</span>
-                              <span className="font-medium">${program.minimumPurchase}</span>
+                              <span className="font-medium">AED {program.minimumPurchase}</span>
                             </div>
                           )}
                           <div className="flex justify-between text-sm">
@@ -969,64 +975,74 @@ export default function AdminMembership() {
 
         {/* Offer Dialog */}
         <Sheet open={offerDialogOpen} onOpenChange={setOfferDialogOpen}>
-          <SheetContent className="w-full sm:max-w-2xl overflow-y-auto">
-            <SheetHeader className="border-b border-gray-200 pb-6 mb-6">
-              <SheetTitle className="text-xl font-semibold text-gray-900 flex items-center gap-2">
-                <Gift className="w-5 h-5 text-blue-600" />
-                Add Special Offer
-              </SheetTitle>
-              <SheetDescription className="text-gray-600">
-                Create a new special offer for your customers with custom discounts and conditions.
-              </SheetDescription>
+          <SheetContent className="w-full sm:max-w-3xl overflow-y-auto bg-gradient-to-b from-gray-50 to-white">
+            <SheetHeader className="sticky top-0 bg-white border-b-2 border-blue-100 pb-6 mb-8 -mx-6 px-6 pt-6">
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <SheetTitle className="text-2xl font-bold text-gray-900 flex items-center gap-3">
+                    <div className="p-2 bg-blue-100 rounded-lg">
+                      <Gift className="w-6 h-6 text-blue-600" />
+                    </div>
+                    Add Special Offer
+                  </SheetTitle>
+                  <SheetDescription className="text-gray-600 mt-2">
+                    Create a new special offer with custom discounts, validity period, and promotional images
+                  </SheetDescription>
+                </div>
+              </div>
             </SheetHeader>
 
-            <div className="space-y-8">
+            <div className="space-y-8 pb-8">
               {/* Basic Information Section */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 pb-2 border-b border-gray-100">
-                  <FileText className="w-4 h-4 text-gray-500" />
-                  <h3 className="text-sm font-medium text-gray-900">Basic Information</h3>
+              <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm hover:shadow-md transition-shadow">
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="p-2 bg-blue-50 rounded-lg">
+                    <FileText className="w-5 h-5 text-blue-600" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900">Basic Information</h3>
                 </div>
-                <div className="grid grid-cols-1 gap-4">
+                <div className="grid grid-cols-1 gap-5">
                   <div>
-                    <Label htmlFor="offer-title" className="text-sm font-medium text-gray-700">Offer Title</Label>
+                    <Label htmlFor="offer-title" className="text-sm font-semibold text-gray-700 mb-2 block">Offer Title *</Label>
                     <Input
                       id="offer-title"
                       value={offerForm.title}
                       onChange={(e) => setOfferForm(prev => ({ ...prev, title: e.target.value }))}
-                      placeholder="e.g., Birthday Special"
-                      className="mt-1"
+                      placeholder="e.g., Birthday Special Discount"
+                      className="mt-0 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
                     />
                   </div>
                   <div>
-                    <Label htmlFor="offer-description" className="text-sm font-medium text-gray-700">Description</Label>
+                    <Label htmlFor="offer-description" className="text-sm font-semibold text-gray-700 mb-2 block">Description</Label>
                     <Textarea
                       id="offer-description"
                       value={offerForm.description}
                       onChange={(e) => setOfferForm(prev => ({ ...prev, description: e.target.value }))}
-                      placeholder="Describe the offer and its benefits"
-                      className="mt-1 min-h-[80px]"
+                      placeholder="Describe the offer, terms, and benefits..."
+                      className="mt-0 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 min-h-[90px]"
                     />
                   </div>
                 </div>
               </div>
 
               {/* Offer Configuration Section */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 pb-2 border-b border-gray-100">
-                  <Settings className="w-4 h-4 text-gray-500" />
-                  <h3 className="text-sm font-medium text-gray-900">Offer Configuration</h3>
+              <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm hover:shadow-md transition-shadow">
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="p-2 bg-purple-50 rounded-lg">
+                    <Settings className="w-5 h-5 text-purple-600" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900">Offer Configuration</h3>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-5 mb-5">
                   <div>
-                    <Label htmlFor="offer-type" className="text-sm font-medium text-gray-700">Offer Type</Label>
+                    <Label htmlFor="offer-type" className="text-sm font-semibold text-gray-700 mb-2 block">Offer Type *</Label>
                     <Select
                       value={offerForm.type}
                       onValueChange={(value: 'service' | 'product' | 'combo' | 'birthday' | 'first_time_registration' | 'promotional_package') =>
                         setOfferForm(prev => ({ ...prev, type: value }))
                       }
                     >
-                      <SelectTrigger className="mt-1">
+                      <SelectTrigger className="border-gray-300 focus:border-purple-500 focus:ring-2 focus:ring-purple-200">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -1040,50 +1056,128 @@ export default function AdminMembership() {
                     </Select>
                   </div>
                   <div>
-                    <Label htmlFor="offer-discount-type" className="text-sm font-medium text-gray-700">Discount Type</Label>
+                    <Label htmlFor="offer-discount-type" className="text-sm font-semibold text-gray-700 mb-2 block">Discount Type *</Label>
                     <Select
                       value={offerForm.discountType}
                       onValueChange={(value: 'percentage' | 'fixed') =>
                         setOfferForm(prev => ({ ...prev, discountType: value }))
                       }
                     >
-                      <SelectTrigger className="mt-1">
+                      <SelectTrigger className="border-gray-300 focus:border-purple-500 focus:ring-2 focus:ring-purple-200">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="percentage">Percentage Off</SelectItem>
-                        <SelectItem value="fixed">Fixed Amount</SelectItem>
+                        <SelectItem value="percentage">Percentage Off (%)</SelectItem>
+                        <SelectItem value="fixed">Fixed Amount (AED)</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                 </div>
                 <div>
-                  <Label htmlFor="offer-discount-value" className="text-sm font-medium text-gray-700">
-                    Discount Value ({offerForm.discountType === 'percentage' ? '%' : '$'})
+                  <Label htmlFor="offer-discount-value" className="text-sm font-semibold text-gray-700 mb-2 block">
+                    Discount Value ({offerForm.discountType === 'percentage' ? '%' : 'AED'}) *
                   </Label>
                   <Input
                     id="offer-discount-value"
                     type="number"
                     value={offerForm.discountValue}
                     onChange={(e) => setOfferForm(prev => ({ ...prev, discountValue: parseFloat(e.target.value) || 0 }))}
-                    placeholder={offerForm.discountType === 'percentage' ? "20" : "10.00"}
-                    className="mt-1"
+                    placeholder={offerForm.discountType === 'percentage' ? "Enter percentage (e.g., 20)" : "Enter amount (e.g., 100)"}
+                    className="border-gray-300 focus:border-purple-500 focus:ring-2 focus:ring-purple-200"
                   />
                 </div>
               </div>
 
-              {/* Service Selection Section */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 pb-2 border-b border-gray-100">
-                  <Check className="w-4 h-4 text-gray-500" />
-                  <h3 className="text-sm font-medium text-gray-900">Applicable Services</h3>
+              {/* Promotional Image Section */}
+              <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm hover:shadow-md transition-shadow">
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="p-2 bg-green-50 rounded-lg">
+                    <Upload className="w-5 h-5 text-green-600" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900">Promotional Image</h3>
                 </div>
-                <div>
-                  <Label className="text-sm font-medium text-gray-700">Select Services</Label>
-                  <div className="border border-gray-200 rounded-lg p-4 mt-1 max-h-48 overflow-y-auto bg-gray-50">
-                    <div className="space-y-3">
+                <Tabs value={imageSource} onValueChange={(value) => setImageSource(value as 'file' | 'url')} className="w-full">
+                  <TabsList className="grid w-full grid-cols-2 bg-gray-100 p-1 rounded-lg mb-4">
+                    <TabsTrigger value="file" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm">
+                      <Upload className="w-4 h-4 mr-2" />
+                      Upload File
+                    </TabsTrigger>
+                    <TabsTrigger value="url" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm">
+                      <FileText className="w-4 h-4 mr-2" />
+                      Image URL
+                    </TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="file" className="space-y-4 mt-4">
+                    <div>
+                      <Label htmlFor="offer-image" className="text-sm font-semibold text-gray-700 mb-3 block">Upload Image</Label>
+                      <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 hover:border-blue-400 transition-colors">
+                        <Input
+                          id="offer-image"
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              const reader = new FileReader();
+                              reader.onload = (event) => {
+                                setOfferForm(prev => ({ ...prev, image: event.target?.result as string }));
+                              };
+                              reader.readAsDataURL(file);
+                            }
+                          }}
+                          className="cursor-pointer"
+                        />
+                      </div>
+                      <p className="text-xs text-gray-500 mt-3">📎 Max size: 5MB • Formats: JPG, PNG, WebP • Recommended: 800x400px</p>
+                    </div>
+                  </TabsContent>
+                  <TabsContent value="url" className="space-y-4 mt-4">
+                    <div>
+                      <Label htmlFor="offer-image-url" className="text-sm font-semibold text-gray-700 mb-3 block">Image URL</Label>
+                      <Input
+                        id="offer-image-url"
+                        type="url"
+                        value={offerForm.image}
+                        onChange={(e) => setOfferForm(prev => ({ ...prev, image: e.target.value }))}
+                        placeholder="https://example.com/image.jpg"
+                        className="border-gray-300 focus:border-green-500 focus:ring-2 focus:ring-green-200"
+                      />
+                      <p className="text-xs text-gray-500 mt-3">🔗 Enter a valid and accessible image URL</p>
+                    </div>
+                  </TabsContent>
+                </Tabs>
+                {offerForm.image && (
+                  <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                    <p className="text-sm font-semibold text-blue-900 mb-3">Preview</p>
+                    <div className="relative inline-block w-full">
+                      <img src={offerForm.image} alt="Preview" className="w-full h-48 object-cover rounded-lg border-2 border-blue-300 shadow-md" />
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setOfferForm(prev => ({ ...prev, image: '' }))}
+                        className="absolute top-3 right-3 bg-red-100 hover:bg-red-200 text-red-600 rounded-full"
+                      >
+                        <X className="w-5 h-5" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Service Selection Section */}
+              <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm hover:shadow-md transition-shadow">
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="p-2 bg-amber-50 rounded-lg">
+                    <Check className="w-5 h-5 text-amber-600" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900">Applicable Services</h3>
+                </div>
+                <p className="text-sm text-gray-600 mb-4">Select services this offer applies to (leave empty for all)</p>
+                <div className="border border-gray-200 rounded-lg overflow-hidden">
+                  <div className="max-h-64 overflow-y-auto bg-gray-50">
+                    <div className="space-y-1">
                       {services.map((service) => (
-                        <div key={service.id} className="flex items-center space-x-3 p-2 rounded-md hover:bg-white transition-colors">
+                        <div key={service.id} className="flex items-center px-4 py-3 hover:bg-blue-50 transition-colors border-b border-gray-100 last:border-b-0">
                           <input
                             type="checkbox"
                             id={`service-${service.id}`}
@@ -1097,86 +1191,105 @@ export default function AdminMembership() {
                                   : prev.applicableServices.filter(id => id !== serviceId)
                               }));
                             }}
-                            className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 focus:ring-2"
+                            className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 focus:ring-2 cursor-pointer"
                           />
-                          <Label htmlFor={`service-${service.id}`} className="text-sm cursor-pointer flex-1">
-                            <span className="font-medium text-gray-900">{service.name}</span>
+                          <Label htmlFor={`service-${service.id}`} className="text-sm cursor-pointer flex-1 ml-3">
+                            <span className="font-semibold text-gray-900">{service.name}</span>
                             {service.price && (
-                              <span className="text-gray-500 ml-2">(${service.price})</span>
+                              <span className="text-gray-500 ml-3">(AED {service.price})</span>
                             )}
                           </Label>
                         </div>
                       ))}
                     </div>
                     {services.length === 0 && (
-                      <div className="text-center py-8">
-                        <Package className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                        <p className="text-sm text-gray-500">No services available</p>
+                      <div className="text-center py-12">
+                        <Package className="w-10 h-10 text-gray-300 mx-auto mb-3" />
+                        <p className="text-sm text-gray-500 font-medium">No services available</p>
                       </div>
                     )}
                   </div>
-                  <p className="text-xs text-gray-500 mt-2">
-                    Select the services this offer applies to. Leave empty to apply to all services.
-                  </p>
                 </div>
               </div>
 
               {/* Validity Period Section */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 pb-2 border-b border-gray-100">
-                  <Calendar className="w-4 h-4 text-gray-500" />
-                  <h3 className="text-sm font-medium text-gray-900">Validity Period</h3>
+              <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm hover:shadow-md transition-shadow">
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="p-2 bg-orange-50 rounded-lg">
+                    <Calendar className="w-5 h-5 text-orange-600" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900">Validity Period</h3>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-5">
                   <div>
-                    <Label htmlFor="offer-valid-from" className="text-sm font-medium text-gray-700">Valid From</Label>
+                    <Label htmlFor="offer-valid-from" className="text-sm font-semibold text-gray-700 mb-2 block">Valid From</Label>
                     <Input
                       id="offer-valid-from"
                       type="date"
                       value={offerForm.validFrom}
                       onChange={(e) => setOfferForm(prev => ({ ...prev, validFrom: e.target.value }))}
-                      className="mt-1"
+                      className="border-gray-300 focus:border-orange-500 focus:ring-2 focus:ring-orange-200"
                     />
                   </div>
                   <div>
-                    <Label htmlFor="offer-valid-to" className="text-sm font-medium text-gray-700">Valid To</Label>
+                    <Label htmlFor="offer-valid-to" className="text-sm font-semibold text-gray-700 mb-2 block">Valid To *</Label>
                     <Input
                       id="offer-valid-to"
                       type="date"
                       value={offerForm.validTo}
                       onChange={(e) => setOfferForm(prev => ({ ...prev, validTo: e.target.value }))}
-                      className="mt-1"
+                      className="border-gray-300 focus:border-orange-500 focus:ring-2 focus:ring-orange-200"
                     />
                   </div>
                 </div>
+                <div className="mt-5 p-4 bg-orange-50 rounded-lg border border-orange-200">
+                  <p className="text-xs text-orange-800">
+                    ℹ️ The offer will be automatically deactivated after the validity period ends
+                  </p>
+                </div>
               </div>
 
-              {/* Status Section */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 pb-2 border-b border-gray-100">
-                  <Eye className="w-4 h-4 text-gray-500" />
-                  <h3 className="text-sm font-medium text-gray-900">Status</h3>
+              {/* Usage & Status Section */}
+              <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm hover:shadow-md transition-shadow">
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="p-2 bg-red-50 rounded-lg">
+                    <Eye className="w-5 h-5 text-red-600" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900">Status & Limits</h3>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    id="offer-active"
-                    checked={offerForm.isActive}
-                    onChange={(e) => setOfferForm(prev => ({ ...prev, isActive: e.target.checked }))}
-                    className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                  />
-                  <Label htmlFor="offer-active" className="text-sm font-medium text-gray-700 cursor-pointer">
-                    Activate this offer immediately
-                  </Label>
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="offer-usage-limit" className="text-sm font-semibold text-gray-700 mb-2 block">Usage Limit (optional)</Label>
+                    <Input
+                      id="offer-usage-limit"
+                      type="number"
+                      value={offerForm.usageLimit}
+                      onChange={(e) => setOfferForm(prev => ({ ...prev, usageLimit: e.target.value }))}
+                      placeholder="Leave empty for unlimited usage"
+                      className="border-gray-300 focus:border-red-500 focus:ring-2 focus:ring-red-200"
+                    />
+                  </div>
+                  <div className="flex items-center space-x-3 p-4 bg-red-50 rounded-lg border border-red-200">
+                    <input
+                      type="checkbox"
+                      id="offer-active"
+                      checked={offerForm.isActive}
+                      onChange={(e) => setOfferForm(prev => ({ ...prev, isActive: e.target.checked }))}
+                      className="w-5 h-5 rounded border-red-300 text-red-600 focus:ring-red-500 cursor-pointer"
+                    />
+                    <Label htmlFor="offer-active" className="text-sm font-semibold text-gray-700 cursor-pointer flex-1">
+                      ✓ Activate this offer immediately
+                    </Label>
+                  </div>
                 </div>
               </div>
             </div>
 
-            <div className="flex justify-end space-x-3 pt-6 border-t border-gray-200 mt-8">
-              <Button variant="outline" onClick={() => setOfferDialogOpen(false)} className="px-6">
+            <div className="flex justify-end space-x-3 pt-8 border-t-2 border-gray-200 mt-8 sticky bottom-0 bg-white -mx-6 px-6 py-6">
+              <Button variant="outline" onClick={() => setOfferDialogOpen(false)} className="px-8 border-gray-300 hover:bg-gray-50">
                 Cancel
               </Button>
-              <Button onClick={handleAddOffer} className="px-6 bg-blue-600 hover:bg-blue-700">
+              <Button onClick={handleAddOffer} disabled={!offerForm.title.trim()} className="px-8 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-md hover:shadow-lg transition-all">
                 <Plus className="w-4 h-4 mr-2" />
                 Create Offer
               </Button>
@@ -1186,23 +1299,31 @@ export default function AdminMembership() {
 
         {/* Promo Code Dialog */}
         <Sheet open={promoDialogOpen} onOpenChange={setPromoDialogOpen}>
-          <SheetContent className="w-full sm:max-w-2xl overflow-y-auto">
-            <SheetHeader className="border-b border-gray-200 pb-6 mb-6">
-              <SheetTitle className="text-xl font-semibold text-gray-900 flex items-center gap-2">
-                <Tag className="w-5 h-5 text-green-600" />
-                Add Promo Code
-              </SheetTitle>
-              <SheetDescription className="text-gray-600">
-                Create a new promotional code with custom discounts and usage limits.
-              </SheetDescription>
+          <SheetContent className="w-full sm:max-w-3xl overflow-y-auto bg-gradient-to-b from-gray-50 to-white">
+            <SheetHeader className="sticky top-0 bg-white border-b-2 border-green-100 pb-6 mb-8 -mx-6 px-6 pt-6">
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <SheetTitle className="text-2xl font-bold text-gray-900 flex items-center gap-3">
+                    <div className="p-2 bg-green-100 rounded-lg">
+                      <Tag className="w-6 h-6 text-green-600" />
+                    </div>
+                    Add Promo Code
+                  </SheetTitle>
+                  <SheetDescription className="text-gray-600 mt-2">
+                    Create a new promotional code with custom discounts and usage limits
+                  </SheetDescription>
+                </div>
+              </div>
             </SheetHeader>
 
-            <div className="space-y-8">
+            <div className="space-y-8 pb-8">
               {/* Basic Information Section */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 pb-2 border-b border-gray-100">
-                  <FileText className="w-4 h-4 text-gray-500" />
-                  <h3 className="text-sm font-medium text-gray-900">Basic Information</h3>
+              <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm hover:shadow-md transition-shadow">
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="p-2 bg-green-50 rounded-lg">
+                    <FileText className="w-5 h-5 text-green-600" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900">Basic Information</h3>
                 </div>
                 <div className="grid grid-cols-1 gap-4">
                   <div>
@@ -1229,10 +1350,12 @@ export default function AdminMembership() {
               </div>
 
               {/* Discount Configuration Section */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 pb-2 border-b border-gray-100">
-                  <Settings className="w-4 h-4 text-gray-500" />
-                  <h3 className="text-sm font-medium text-gray-900">Discount Configuration</h3>
+              <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm hover:shadow-md transition-shadow">
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="p-2 bg-green-50 rounded-lg">
+                    <Settings className="w-5 h-5 text-green-600" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900">Discount Configuration</h3>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
@@ -1254,36 +1377,38 @@ export default function AdminMembership() {
                   </div>
                   <div>
                     <Label htmlFor="promo-discount-value" className="text-sm font-medium text-gray-700">
-                      Discount Value ({promoForm.discountType === 'percentage' ? '%' : '$'})
+                      Discount Value ({promoForm.discountType === 'percentage' ? '%' : 'AED'})
                     </Label>
                     <Input
                       id="promo-discount-value"
                       type="number"
                       value={promoForm.discountValue}
                       onChange={(e) => setPromoForm(prev => ({ ...prev, discountValue: parseFloat(e.target.value) || 0 }))}
-                      placeholder={promoForm.discountType === 'percentage' ? "20" : "10.00"}
+                      placeholder={promoForm.discountType === 'percentage' ? "20" : "50"}
                       className="mt-1"
                     />
                   </div>
                 </div>
                 <div>
-                  <Label htmlFor="promo-minimum-purchase" className="text-sm font-medium text-gray-700">Minimum Purchase ($)</Label>
+                  <Label htmlFor="promo-minimum-purchase" className="text-sm font-medium text-gray-700">Minimum Purchase (AED)</Label>
                   <Input
                     id="promo-minimum-purchase"
                     type="number"
                     value={promoForm.minimumPurchase}
                     onChange={(e) => setPromoForm(prev => ({ ...prev, minimumPurchase: e.target.value }))}
-                    placeholder="0.00"
+                    placeholder="200"
                     className="mt-1"
                   />
                 </div>
               </div>
 
               {/* Usage Limits Section */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 pb-2 border-b border-gray-100">
-                  <Users className="w-4 h-4 text-gray-500" />
-                  <h3 className="text-sm font-medium text-gray-900">Usage Limits</h3>
+              <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm hover:shadow-md transition-shadow">
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="p-2 bg-green-50 rounded-lg">
+                    <Users className="w-5 h-5 text-green-600" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900">Usage Limits</h3>
                 </div>
                 <div>
                   <Label htmlFor="promo-max-uses" className="text-sm font-medium text-gray-700">Max Uses (Total)</Label>
@@ -1300,10 +1425,12 @@ export default function AdminMembership() {
               </div>
 
               {/* Validity Period Section */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 pb-2 border-b border-gray-100">
-                  <Calendar className="w-4 h-4 text-gray-500" />
-                  <h3 className="text-sm font-medium text-gray-900">Validity Period</h3>
+              <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm hover:shadow-md transition-shadow">
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="p-2 bg-green-50 rounded-lg">
+                    <Calendar className="w-5 h-5 text-green-600" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900">Validity Period</h3>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
@@ -1330,10 +1457,12 @@ export default function AdminMembership() {
               </div>
 
               {/* Status Section */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 pb-2 border-b border-gray-100">
-                  <Eye className="w-4 h-4 text-gray-500" />
-                  <h3 className="text-sm font-medium text-gray-900">Status</h3>
+              <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm hover:shadow-md transition-shadow">
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="p-2 bg-green-50 rounded-lg">
+                    <Eye className="w-5 h-5 text-green-600" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900">Status</h3>
                 </div>
                 <div className="flex items-center space-x-2">
                   <input
@@ -1350,37 +1479,47 @@ export default function AdminMembership() {
               </div>
             </div>
 
-            <div className="flex justify-end space-x-3 pt-6 border-t border-gray-200 mt-8">
-              <Button variant="outline" onClick={() => setPromoDialogOpen(false)} className="px-6">
-                Cancel
-              </Button>
-              <Button onClick={handleAddPromoCode} className="px-6 bg-green-600 hover:bg-green-700">
-                <Plus className="w-4 h-4 mr-2" />
-                Create Promo Code
-              </Button>
+            <div className="sticky bottom-0 bg-white border-t-2 border-green-100 pt-6 -mx-6 px-6 pb-6">
+              <div className="flex justify-end space-x-3">
+                <Button variant="outline" onClick={() => setPromoDialogOpen(false)} className="px-6">
+                  Cancel
+                </Button>
+                <Button onClick={handleAddPromoCode} className="px-6 bg-green-600 hover:bg-green-700">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Create Promo Code
+                </Button>
+              </div>
             </div>
           </SheetContent>
         </Sheet>
 
         {/* Loyalty Dialog */}
         <Sheet open={loyaltyDialogOpen} onOpenChange={setLoyaltyDialogOpen}>
-          <SheetContent className="w-full sm:max-w-2xl overflow-y-auto">
-            <SheetHeader className="border-b border-gray-200 pb-6 mb-6">
-              <SheetTitle className="text-xl font-semibold text-gray-900 flex items-center gap-2">
-                <Star className="w-5 h-5 text-yellow-600" />
-                Add Loyalty Program
-              </SheetTitle>
-              <SheetDescription className="text-gray-600">
-                Create a loyalty points program to reward customer purchases and encourage repeat business.
-              </SheetDescription>
+          <SheetContent className="w-full sm:max-w-3xl overflow-y-auto bg-gradient-to-b from-gray-50 to-white">
+            <SheetHeader className="sticky top-0 bg-white border-b-2 border-yellow-100 pb-6 mb-8 -mx-6 px-6 pt-6">
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <SheetTitle className="text-2xl font-bold text-gray-900 flex items-center gap-3">
+                    <div className="p-2 bg-yellow-100 rounded-lg">
+                      <Star className="w-6 h-6 text-yellow-600" />
+                    </div>
+                    Add Loyalty Program
+                  </SheetTitle>
+                  <SheetDescription className="text-gray-600 mt-2">
+                    Create a loyalty points program to reward customer purchases and encourage repeat business
+                  </SheetDescription>
+                </div>
+              </div>
             </SheetHeader>
 
-            <div className="space-y-8">
+            <div className="space-y-8 pb-8">
               {/* Basic Information Section */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 pb-2 border-b border-gray-100">
-                  <FileText className="w-4 h-4 text-gray-500" />
-                  <h3 className="text-sm font-medium text-gray-900">Basic Information</h3>
+              <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm hover:shadow-md transition-shadow">
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="p-2 bg-yellow-50 rounded-lg">
+                    <FileText className="w-5 h-5 text-yellow-600" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900">Basic Information</h3>
                 </div>
                 <div className="grid grid-cols-1 gap-4">
                   <div>
@@ -1407,10 +1546,12 @@ export default function AdminMembership() {
               </div>
 
               {/* Points Configuration Section */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 pb-2 border-b border-gray-100">
-                  <Settings className="w-4 h-4 text-gray-500" />
-                  <h3 className="text-sm font-medium text-gray-900">Points Configuration</h3>
+              <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm hover:shadow-md transition-shadow">
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="p-2 bg-yellow-50 rounded-lg">
+                    <Settings className="w-5 h-5 text-yellow-600" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900">Points Configuration</h3>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
@@ -1442,10 +1583,12 @@ export default function AdminMembership() {
               </div>
 
               {/* Redemption Rules Section */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 pb-2 border-b border-gray-100">
-                  <Award className="w-4 h-4 text-gray-500" />
-                  <h3 className="text-sm font-medium text-gray-900">Redemption Rules</h3>
+              <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm hover:shadow-md transition-shadow">
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="p-2 bg-yellow-50 rounded-lg">
+                    <Award className="w-5 h-5 text-yellow-600" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900">Redemption Rules</h3>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
@@ -1476,10 +1619,12 @@ export default function AdminMembership() {
               </div>
 
               {/* Status Section */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 pb-2 border-b border-gray-100">
-                  <Eye className="w-4 h-4 text-gray-500" />
-                  <h3 className="text-sm font-medium text-gray-900">Status</h3>
+              <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm hover:shadow-md transition-shadow">
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="p-2 bg-yellow-50 rounded-lg">
+                    <Eye className="w-5 h-5 text-yellow-600" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900">Status</h3>
                 </div>
                 <div className="flex items-center space-x-2">
                   <input
@@ -1496,37 +1641,47 @@ export default function AdminMembership() {
               </div>
             </div>
 
-            <div className="flex justify-end space-x-3 pt-6 border-t border-gray-200 mt-8">
-              <Button variant="outline" onClick={() => setLoyaltyDialogOpen(false)} className="px-6">
-                Cancel
-              </Button>
-              <Button onClick={handleAddLoyaltyProgram} className="px-6 bg-yellow-600 hover:bg-yellow-700">
-                <Plus className="w-4 h-4 mr-2" />
-                Create Program
-              </Button>
+            <div className="sticky bottom-0 bg-white border-t-2 border-yellow-100 pt-6 -mx-6 px-6 pb-6">
+              <div className="flex justify-end space-x-3">
+                <Button variant="outline" onClick={() => setLoyaltyDialogOpen(false)} className="px-6">
+                  Cancel
+                </Button>
+                <Button onClick={handleAddLoyaltyProgram} className="px-6 bg-yellow-600 hover:bg-yellow-700">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Create Program
+                </Button>
+              </div>
             </div>
           </SheetContent>
         </Sheet>
 
         {/* Cashback Dialog */}
         <Sheet open={cashbackDialogOpen} onOpenChange={setCashbackDialogOpen}>
-          <SheetContent className="w-full sm:max-w-2xl overflow-y-auto">
-            <SheetHeader className="border-b border-gray-200 pb-6 mb-6">
-              <SheetTitle className="text-xl font-semibold text-gray-900 flex items-center gap-2">
-                <DollarSign className="w-5 h-5 text-purple-600" />
-                Add Cashback Program
-              </SheetTitle>
-              <SheetDescription className="text-gray-600">
-                Create a cashback rewards program to give customers money back on their purchases.
-              </SheetDescription>
+          <SheetContent className="w-full sm:max-w-3xl overflow-y-auto bg-gradient-to-b from-gray-50 to-white">
+            <SheetHeader className="sticky top-0 bg-white border-b-2 border-purple-100 pb-6 mb-8 -mx-6 px-6 pt-6">
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <SheetTitle className="text-2xl font-bold text-gray-900 flex items-center gap-3">
+                    <div className="p-2 bg-purple-100 rounded-lg">
+                      <DollarSign className="w-6 h-6 text-purple-600" />
+                    </div>
+                    Add Cashback Program
+                  </SheetTitle>
+                  <SheetDescription className="text-gray-600 mt-2">
+                    Create a cashback rewards program to give customers money back on their purchases
+                  </SheetDescription>
+                </div>
+              </div>
             </SheetHeader>
 
-            <div className="space-y-8">
+            <div className="space-y-8 pb-8">
               {/* Basic Information Section */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 pb-2 border-b border-gray-100">
-                  <FileText className="w-4 h-4 text-gray-500" />
-                  <h3 className="text-sm font-medium text-gray-900">Basic Information</h3>
+              <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm hover:shadow-md transition-shadow">
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="p-2 bg-purple-50 rounded-lg">
+                    <FileText className="w-5 h-5 text-purple-600" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900">Basic Information</h3>
                 </div>
                 <div className="grid grid-cols-1 gap-4">
                   <div>
@@ -1553,10 +1708,12 @@ export default function AdminMembership() {
               </div>
 
               {/* Cashback Configuration Section */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 pb-2 border-b border-gray-100">
-                  <Settings className="w-4 h-4 text-gray-500" />
-                  <h3 className="text-sm font-medium text-gray-900">Cashback Configuration</h3>
+              <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm hover:shadow-md transition-shadow">
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="p-2 bg-purple-50 rounded-lg">
+                    <Settings className="w-5 h-5 text-purple-600" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900">Cashback Configuration</h3>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
@@ -1578,26 +1735,26 @@ export default function AdminMembership() {
                   </div>
                   <div>
                     <Label htmlFor="cashback-value" className="text-sm font-medium text-gray-700">
-                      Cashback Value ({cashbackForm.cashbackType === 'percentage' ? '%' : '$'})
+                      Cashback Value ({cashbackForm.cashbackType === 'percentage' ? '%' : 'AED'})
                     </Label>
                     <Input
                       id="cashback-value"
                       type="number"
                       value={cashbackForm.cashbackValue}
                       onChange={(e) => setCashbackForm(prev => ({ ...prev, cashbackValue: parseFloat(e.target.value) || 0 }))}
-                      placeholder={cashbackForm.cashbackType === 'percentage' ? "5" : "10.00"}
+                      placeholder={cashbackForm.cashbackType === 'percentage' ? "5" : "50"}
                       className="mt-1"
                     />
                   </div>
                 </div>
                 <div>
-                  <Label htmlFor="cashback-minimum-purchase" className="text-sm font-medium text-gray-700">Minimum Purchase ($)</Label>
+                  <Label htmlFor="cashback-minimum-purchase" className="text-sm font-medium text-gray-700">Minimum Purchase (AED)</Label>
                   <Input
                     id="cashback-minimum-purchase"
                     type="number"
                     value={cashbackForm.minimumPurchase}
                     onChange={(e) => setCashbackForm(prev => ({ ...prev, minimumPurchase: e.target.value }))}
-                    placeholder="100.00"
+                    placeholder="500"
                     className="mt-1"
                   />
                   <p className="text-xs text-gray-500 mt-1">Minimum purchase amount required to earn cashback</p>
@@ -1605,10 +1762,12 @@ export default function AdminMembership() {
               </div>
 
               {/* Validity Period Section */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 pb-2 border-b border-gray-100">
-                  <Calendar className="w-4 h-4 text-gray-500" />
-                  <h3 className="text-sm font-medium text-gray-900">Validity Period</h3>
+              <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm hover:shadow-md transition-shadow">
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="p-2 bg-purple-50 rounded-lg">
+                    <Calendar className="w-5 h-5 text-purple-600" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900">Validity Period</h3>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
@@ -1635,10 +1794,12 @@ export default function AdminMembership() {
               </div>
 
               {/* Status Section */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 pb-2 border-b border-gray-100">
-                  <Eye className="w-4 h-4 text-gray-500" />
-                  <h3 className="text-sm font-medium text-gray-900">Status</h3>
+              <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm hover:shadow-md transition-shadow">
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="p-2 bg-purple-50 rounded-lg">
+                    <Eye className="w-5 h-5 text-purple-600" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900">Status</h3>
                 </div>
                 <div className="flex items-center space-x-2">
                   <input
@@ -1655,14 +1816,16 @@ export default function AdminMembership() {
               </div>
             </div>
 
-            <div className="flex justify-end space-x-3 pt-6 border-t border-gray-200 mt-8">
-              <Button variant="outline" onClick={() => setCashbackDialogOpen(false)} className="px-6">
-                Cancel
-              </Button>
-              <Button onClick={handleAddCashbackProgram} className="px-6 bg-purple-600 hover:bg-purple-700">
-                <Plus className="w-4 h-4 mr-2" />
-                Create Program
-              </Button>
+            <div className="sticky bottom-0 bg-white border-t-2 border-purple-100 pt-6 -mx-6 px-6 pb-6">
+              <div className="flex justify-end space-x-3">
+                <Button variant="outline" onClick={() => setCashbackDialogOpen(false)} className="px-6">
+                  Cancel
+                </Button>
+                <Button onClick={handleAddCashbackProgram} className="px-6 bg-purple-600 hover:bg-purple-700">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Create Program
+                </Button>
+              </div>
             </div>
           </SheetContent>
         </Sheet>

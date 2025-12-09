@@ -9,6 +9,7 @@ interface BookingData {
   email: string;
   phone: string;
   notes: string;
+  paymentMethod: string;
 }
 
 interface BookingStore {
@@ -30,6 +31,7 @@ const initialBookingData: BookingData = {
   email: '',
   phone: '',
   notes: '',
+  paymentMethod: 'cod',
 };
 
 export const useBookingStore = create<BookingStore>((set, get) => ({
@@ -45,7 +47,7 @@ export const useBookingStore = create<BookingStore>((set, get) => ({
 
   nextStep: () =>
     set((state) => ({
-      currentStep: Math.min(state.currentStep + 1, 4),
+      currentStep: Math.min(state.currentStep + 1, 5),
     })),
 
   prevStep: () =>

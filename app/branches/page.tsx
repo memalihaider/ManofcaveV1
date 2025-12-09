@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Header } from "@/components/shared/Header";
 import { MapPin, Star, Clock, Phone } from "lucide-react";
+import { BookingModal } from "@/components/booking/BookingModal";
 
 const branches = [
   {
@@ -125,11 +126,11 @@ export default function Branches() {
                     </div>
 
                     <div className="flex gap-3 pt-4">
-                      <Button asChild className="flex-1 bg-secondary hover:bg-secondary/90 text-primary">
-                        <Link href={`/booking?branch=${branch.id}`}>
+                      <BookingModal>
+                        <Button className="flex-1 bg-secondary hover:bg-secondary/90 text-primary">
                           Book Now
-                        </Link>
-                      </Button>
+                        </Button>
+                      </BookingModal>
                       <Button asChild variant="outline" className="flex-1">
                         <Link href={`/branches/${branch.id}`}>
                           View Details

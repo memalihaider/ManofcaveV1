@@ -9,8 +9,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Settings, Store, Clock, Bell, Shield, CreditCard, Save, Upload } from "lucide-react";
-import ProtectedRoute from "@/components/ProtectedRoute";
+import { Settings, Store, Clock, Bell, Shield, CreditCard, Save, Upload, MessageSquare, FileText, Plus, Trash2 } from "lucide-react";
+import { PermissionProtectedRoute, PermissionProtectedSection } from "@/components/PermissionProtected";
 import { AdminSidebar, AdminMobileSidebar } from "@/components/admin/AdminSidebar";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
@@ -67,6 +67,69 @@ export default function AdminSettings() {
     taxRate: 8.875
   });
 
+  // Payment Methods State
+  const [paymentMethods, setPaymentMethods] = useState([
+    {
+      id: '1',
+      name: 'Credit Card',
+      type: 'card',
+      provider: 'Stripe',
+      isActive: true,
+      testMode: true,
+      apiKey: '',
+      secretKey: ''
+    },
+    {
+      id: '2',
+      name: 'PayPal',
+      type: 'digital',
+      provider: 'PayPal',
+      isActive: false,
+      testMode: true,
+      apiKey: '',
+      secretKey: ''
+    }
+  ]);
+
+  // SMS Content State
+  const [smsContent, setSmsContent] = useState({
+    approval: "Your booking has been approved! We're excited to see you on {date} at {time}.",
+    pending: "Your booking request is pending approval. We'll notify you once confirmed.",
+    upcoming: "Reminder: You have an appointment tomorrow at {time}. See you soon!",
+    rejection: "We're sorry, but your booking request could not be accommodated. Please try another time slot.",
+    offers: "Special offer! {offer_name} - {discount}% off. Book now and save!",
+    other: "Thank you for choosing our services. We look forward to serving you."
+  });
+
+  // Terms and Conditions State
+  const [termsContent, setTermsContent] = useState({
+    title: "Terms and Conditions",
+    content: `Welcome to Premium Cuts. By using our services, you agree to the following terms:
+
+1. Booking Policy
+   - All bookings require confirmation
+   - Cancellations must be made 24 hours in advance
+   - Late arrivals may result in shortened service time
+
+2. Payment Terms
+   - Payment is due at the time of service
+   - We accept cash, credit cards, and digital payments
+   - Deposits are non-refundable if cancelled within 24 hours
+
+3. Service Standards
+   - We strive to provide the highest quality service
+   - Satisfaction guaranteed or your money back
+   - All services performed by licensed professionals
+
+4. Privacy Policy
+   - Your personal information is kept confidential
+   - We do not share customer data with third parties
+   - Contact information used only for appointment purposes
+
+Please contact us if you have any questions about these terms.`,
+    lastUpdated: new Date().toISOString().split('T')[0]
+  });
+
   const handleSettingChange = (key: string, value: any) => {
     setSettings(prev => ({
       ...prev,
@@ -101,7 +164,7 @@ export default function AdminSettings() {
   ];
 
   return (
-    <ProtectedRoute requiredRole="branch_admin">
+    <PermissionProtectedRoute requiredPermissions={['settings.view']}>
       <div className="flex h-screen bg-gray-50">
         {/* Sidebar */}
         <AdminSidebar role="branch_admin" onLogout={handleLogout}
@@ -143,7 +206,7 @@ export default function AdminSettings() {
           <div className="flex-1 overflow-auto">
             <div className="p-4 lg:p-8">
               <Tabs defaultValue="business" className="space-y-6">
-                <TabsList className="grid w-full grid-cols-5">
+                <TabsList className="grid w-full grid-cols-8">
                   <TabsTrigger value="business" className="flex items-center gap-2">
                     <Store className="w-4 h-4" />
                     Business
@@ -160,10 +223,30 @@ export default function AdminSettings() {
                     <Settings className="w-4 h-4" />
                     Booking
                   </TabsTrigger>
-                  <TabsTrigger value="payment" className="flex items-center gap-2">
-                    <CreditCard className="w-4 h-4" />
-                    Payment
-                  </TabsTrigger>
+                  <PermissionProtectedSection requiredPermissions={['payment_methods.view']}>
+                    <TabsTrigger value="payment" className="flex items-center gap-2">
+                      <CreditCard className="w-4 h-4" />
+                      Payment
+                    </TabsTrigger>
+                  </PermissionProtectedSection>
+                  <PermissionProtectedSection requiredPermissions={['payment_methods.view']}>
+                    <TabsTrigger value="payment-methods" className="flex items-center gap-2">
+                      <Plus className="w-4 h-4" />
+                      Payment Methods
+                    </TabsTrigger>
+                  </PermissionProtectedSection>
+                  <PermissionProtectedSection requiredPermissions={['sms_content.view']}>
+                    <TabsTrigger value="sms" className="flex items-center gap-2">
+                      <MessageSquare className="w-4 h-4" />
+                      SMS Content
+                    </TabsTrigger>
+                  </PermissionProtectedSection>
+                  <PermissionProtectedSection requiredPermissions={['terms.view']}>
+                    <TabsTrigger value="terms" className="flex items-center gap-2">
+                      <FileText className="w-4 h-4" />
+                      Terms & Conditions
+                    </TabsTrigger>
+                  </PermissionProtectedSection>
                 </TabsList>
 
                 {/* Business Settings */}
@@ -481,11 +564,340 @@ export default function AdminSettings() {
                     </CardContent>
                   </Card>
                 </TabsContent>
+
+                {/* Payment Methods */}
+                <PermissionProtectedSection requiredPermissions={['payment_methods.view']}>
+                  <TabsContent value="payment-methods">
+                  <div className="space-y-6">
+                    <Card>
+                      <CardHeader>
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <CardTitle>Payment Methods</CardTitle>
+                            <CardDescription>Configure and manage payment gateways</CardDescription>
+                          </div>
+                          <Button className="bg-blue-600 hover:bg-blue-700">
+                            <Plus className="w-4 h-4 mr-2" />
+                            Add Payment Method
+                          </Button>
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-4">
+                          {paymentMethods.map((method) => (
+                            <div key={method.id} className="border rounded-lg p-4">
+                              <div className="flex items-center justify-between mb-4">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                                    <CreditCard className="w-5 h-5 text-blue-600" />
+                                  </div>
+                                  <div>
+                                    <h3 className="font-medium">{method.name}</h3>
+                                    <p className="text-sm text-gray-600">{method.provider}</p>
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <Switch
+                                    checked={method.isActive}
+                                    onCheckedChange={(checked) => {
+                                      setPaymentMethods(prev => prev.map(m =>
+                                        m.id === method.id ? { ...m, isActive: checked } : m
+                                      ));
+                                    }}
+                                  />
+                                  <Button variant="outline" size="sm">
+                                    <Settings className="w-4 h-4" />
+                                  </Button>
+                                  <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700">
+                                    <Trash2 className="w-4 h-4" />
+                                  </Button>
+                                </div>
+                              </div>
+
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                  <Label>Test Mode</Label>
+                                  <div className="flex items-center gap-2">
+                                    <Switch
+                                      checked={method.testMode}
+                                      onCheckedChange={(checked) => {
+                                        setPaymentMethods(prev => prev.map(m =>
+                                          m.id === method.id ? { ...m, testMode: checked } : m
+                                        ));
+                                      }}
+                                    />
+                                    <span className="text-sm text-gray-600">
+                                      {method.testMode ? 'Test Mode' : 'Live Mode'}
+                                    </span>
+                                  </div>
+                                </div>
+                                <div className="space-y-2">
+                                  <Label htmlFor={`api-key-${method.id}`}>API Key</Label>
+                                  <Input
+                                    id={`api-key-${method.id}`}
+                                    type="password"
+                                    placeholder="Enter API Key"
+                                    value={method.apiKey}
+                                    onChange={(e) => {
+                                      setPaymentMethods(prev => prev.map(m =>
+                                        m.id === method.id ? { ...m, apiKey: e.target.value } : m
+                                      ));
+                                    }}
+                                  />
+                                </div>
+                                <div className="space-y-2">
+                                  <Label htmlFor={`secret-key-${method.id}`}>Secret Key</Label>
+                                  <Input
+                                    id={`secret-key-${method.id}`}
+                                    type="password"
+                                    placeholder="Enter Secret Key"
+                                    value={method.secretKey}
+                                    onChange={(e) => {
+                                      setPaymentMethods(prev => prev.map(m =>
+                                        m.id === method.id ? { ...m, secretKey: e.target.value } : m
+                                      ));
+                                    }}
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Payment Gateway Settings</CardTitle>
+                        <CardDescription>Additional payment configuration options</CardDescription>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <Label className="text-sm font-medium">Enable Webhooks</Label>
+                            <p className="text-sm text-gray-600">Receive real-time payment notifications</p>
+                          </div>
+                          <Switch defaultChecked />
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <Label className="text-sm font-medium">Auto-capture Payments</Label>
+                            <p className="text-sm text-gray-600">Automatically capture authorized payments</p>
+                          </div>
+                          <Switch defaultChecked />
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <Label className="text-sm font-medium">Save Card Details</Label>
+                            <p className="text-sm text-gray-600">Allow customers to save payment methods</p>
+                          </div>
+                          <Switch />
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                </TabsContent>
+                </PermissionProtectedSection>
+
+                {/* SMS Content */}
+                <PermissionProtectedSection requiredPermissions={['sms_content.view']}>
+                  <TabsContent value="sms">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>SMS Content Templates</CardTitle>
+                      <CardDescription>Customize SMS messages sent to customers</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                      <div className="space-y-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="sms-approval" className="text-sm font-medium flex items-center gap-2">
+                            <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                            Booking Approval
+                          </Label>
+                          <Textarea
+                            id="sms-approval"
+                            value={smsContent.approval}
+                            onChange={(e) => setSmsContent(prev => ({ ...prev, approval: e.target.value }))}
+                            placeholder="Enter approval message template"
+                            rows={2}
+                          />
+                          <p className="text-xs text-gray-500">Use {`{date}`} and {`{time}`} as placeholders</p>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="sms-pending" className="text-sm font-medium flex items-center gap-2">
+                            <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                            Booking Pending
+                          </Label>
+                          <Textarea
+                            id="sms-pending"
+                            value={smsContent.pending}
+                            onChange={(e) => setSmsContent(prev => ({ ...prev, pending: e.target.value }))}
+                            placeholder="Enter pending message template"
+                            rows={2}
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="sms-upcoming" className="text-sm font-medium flex items-center gap-2">
+                            <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                            Upcoming Appointment Reminder
+                          </Label>
+                          <Textarea
+                            id="sms-upcoming"
+                            value={smsContent.upcoming}
+                            onChange={(e) => setSmsContent(prev => ({ ...prev, upcoming: e.target.value }))}
+                            placeholder="Enter reminder message template"
+                            rows={2}
+                          />
+                          <p className="text-xs text-gray-500">Use {`{time}`} as placeholder</p>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="sms-rejection" className="text-sm font-medium flex items-center gap-2">
+                            <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                            Booking Rejection
+                          </Label>
+                          <Textarea
+                            id="sms-rejection"
+                            value={smsContent.rejection}
+                            onChange={(e) => setSmsContent(prev => ({ ...prev, rejection: e.target.value }))}
+                            placeholder="Enter rejection message template"
+                            rows={2}
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="sms-offers" className="text-sm font-medium flex items-center gap-2">
+                            <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
+                            Special Offers & Promotions
+                          </Label>
+                          <Textarea
+                            id="sms-offers"
+                            value={smsContent.offers}
+                            onChange={(e) => setSmsContent(prev => ({ ...prev, offers: e.target.value }))}
+                            placeholder="Enter promotional message template"
+                            rows={2}
+                          />
+                          <p className="text-xs text-gray-500">Use {`{offer_name}`} and {`{discount}`} as placeholders</p>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="sms-other" className="text-sm font-medium flex items-center gap-2">
+                            <div className="w-3 h-3 bg-gray-500 rounded-full"></div>
+                            General Messages
+                          </Label>
+                          <Textarea
+                            id="sms-other"
+                            value={smsContent.other}
+                            onChange={(e) => setSmsContent(prev => ({ ...prev, other: e.target.value }))}
+                            placeholder="Enter general message template"
+                            rows={2}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                        <h4 className="text-sm font-medium text-blue-900 mb-2">Available Placeholders</h4>
+                        <div className="text-sm text-blue-800 space-y-1">
+                          <p><code className="bg-blue-100 px-1 rounded">{`{date}`}</code> - Appointment date</p>
+                          <p><code className="bg-blue-100 px-1 rounded">{`{time}`}</code> - Appointment time</p>
+                          <p><code className="bg-blue-100 px-1 rounded">{`{offer_name}`}</code> - Offer/promotion name</p>
+                          <p><code className="bg-blue-100 px-1 rounded">{`{discount}`}</code> - Discount percentage</p>
+                          <p><code className="bg-blue-100 px-1 rounded">{`{customer_name}`}</code> - Customer name</p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between pt-4 border-t">
+                        <div>
+                          <Label className="text-sm font-medium">Enable SMS Notifications</Label>
+                          <p className="text-sm text-gray-600">Send SMS messages to customers</p>
+                        </div>
+                        <Switch defaultChecked />
+                      </div>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+                </PermissionProtectedSection>
+
+                {/* Terms and Conditions */}
+                <PermissionProtectedSection requiredPermissions={['terms.view']}>
+                  <TabsContent value="terms">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Terms and Conditions</CardTitle>
+                      <CardDescription>Manage your business terms and conditions</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                      <div className="space-y-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="terms-title">Document Title</Label>
+                          <Input
+                            id="terms-title"
+                            value={termsContent.title}
+                            onChange={(e) => setTermsContent(prev => ({ ...prev, title: e.target.value }))}
+                            placeholder="Terms and Conditions"
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="terms-content">Content</Label>
+                          <Textarea
+                            id="terms-content"
+                            value={termsContent.content}
+                            onChange={(e) => setTermsContent(prev => ({ ...prev, content: e.target.value }))}
+                            placeholder="Enter your terms and conditions..."
+                            rows={20}
+                            className="font-mono text-sm"
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="terms-last-updated">Last Updated</Label>
+                          <Input
+                            id="terms-last-updated"
+                            type="date"
+                            value={termsContent.lastUpdated}
+                            onChange={(e) => setTermsContent(prev => ({ ...prev, lastUpdated: e.target.value }))}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                        <h4 className="text-sm font-medium text-gray-900 mb-2">Preview</h4>
+                        <div className="bg-white border rounded p-4 max-h-60 overflow-y-auto">
+                          <h1 className="text-xl font-bold mb-4">{termsContent.title}</h1>
+                          <div className="text-sm whitespace-pre-wrap">{termsContent.content}</div>
+                          <div className="text-xs text-gray-500 mt-4 pt-4 border-t">
+                            Last updated: {new Date(termsContent.lastUpdated).toLocaleDateString()}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between pt-4 border-t">
+                        <div>
+                          <Label className="text-sm font-medium">Require Terms Acceptance</Label>
+                          <p className="text-sm text-gray-600">Customers must accept terms before booking</p>
+                        </div>
+                        <Switch defaultChecked />
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <Label className="text-sm font-medium">Show Terms on Website</Label>
+                          <p className="text-sm text-gray-600">Display terms and conditions on your website</p>
+                        </div>
+                        <Switch defaultChecked />
+                      </div>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+                </PermissionProtectedSection>
               </Tabs>
             </div>
           </div>
         </div>
       </div>
-    </ProtectedRoute>
+    </PermissionProtectedRoute>
   );
 }

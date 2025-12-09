@@ -1,9 +1,11 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { Role } from '@/lib/permissions';
+import { PermissionProvider } from './PermissionContext';
 
 interface User {
   id: string;
   email: string;
-  role: 'branch_admin' | 'super_admin';
+  role: Role;
   branchId?: string;
 }
 
@@ -53,8 +55,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     // Mock authentication - replace with real API call
     const mockUsers = [
-      { email: 'admin@branch1.com', password: 'admin123', role: 'branch_admin' as const, branchId: '1' },
-      { email: 'super@premiumcuts.com', password: 'super123', role: 'super_admin' as const },
+      { email: 'admin@branch1.com', password: 'admin123', role: 'branch_admin' as Role, branchId: '1' },
+      { email: 'super@premiumcuts.com', password: 'super123', role: 'super_admin' as Role },
+      { email: 'manager@branch1.com', password: 'manager456', role: 'manager' as Role, branchId: '1' },
+      { email: 'staff@branch1.com', password: 'staff789', role: 'staff' as Role, branchId: '1' },
     ];
 
     const foundUser = mockUsers.find(u => u.email === email && u.password === password);
@@ -91,5 +95,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     isLoading,
   };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={value}>
+      <PermissionProvider currentUser={user}>
+        {children}
+      </PermissionProvider>
+    </AuthContext.Provider>
+  );
 };

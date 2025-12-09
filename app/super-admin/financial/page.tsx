@@ -71,9 +71,9 @@ export default function SuperAdminFinancial() {
   };
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat('ar-AE', {
       style: 'currency',
-      currency: 'USD'
+      currency: 'AED'
     }).format(amount);
   };
 

@@ -21,6 +21,29 @@ export default function SuperAdminDashboard() {
     router.push('/login');
   };
 
+  // Navigation handlers
+  const handleViewBranchDetails = (branchName: string) => {
+    // Convert branch name to URL-friendly format
+    const branchId = branchName.toLowerCase().replace(/\s+/g, '-');
+    router.push(`/super-admin/branches/${branchId}`);
+  };
+
+  const handleAddNewBranch = () => {
+    router.push('/super-admin/branches/new');
+  };
+
+  const handleManageStaff = () => {
+    router.push('/super-admin/staff');
+  };
+
+  const handleGenerateReports = () => {
+    router.push('/super-admin/analytics');
+  };
+
+  const handleSystemSettings = () => {
+    router.push('/super-admin/settings');
+  };
+
   // Mock data - in real app, this would come from API
   const overallStats = {
     totalBranches: 8,
@@ -201,7 +224,11 @@ export default function SuperAdminDashboard() {
                                 <span>Rating: ⭐ {branch.rating}</span>
                               </div>
                             </div>
-                            <Button variant="outline" size="sm">
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => handleViewBranchDetails(branch.name)}
+                            >
                               View Details
                             </Button>
                           </div>
@@ -222,19 +249,35 @@ export default function SuperAdminDashboard() {
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-3">
-                      <Button className="w-full justify-start" variant="outline">
+                      <Button 
+                        className="w-full justify-start" 
+                        variant="outline"
+                        onClick={handleAddNewBranch}
+                      >
                         <UserPlus className="w-4 h-4 mr-2" />
                         Add New Branch
                       </Button>
-                      <Button className="w-full justify-start" variant="outline">
+                      <Button 
+                        className="w-full justify-start" 
+                        variant="outline"
+                        onClick={handleManageStaff}
+                      >
                         <Users className="w-4 h-4 mr-2" />
                         Manage Staff
                       </Button>
-                      <Button className="w-full justify-start" variant="outline">
+                      <Button 
+                        className="w-full justify-start" 
+                        variant="outline"
+                        onClick={handleGenerateReports}
+                      >
                         <BarChart3 className="w-4 h-4 mr-2" />
                         Generate Reports
                       </Button>
-                      <Button className="w-full justify-start" variant="outline">
+                      <Button 
+                        className="w-full justify-start" 
+                        variant="outline"
+                        onClick={handleSystemSettings}
+                      >
                         <Settings className="w-4 h-4 mr-2" />
                         System Settings
                       </Button>

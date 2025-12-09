@@ -147,6 +147,7 @@ export default function SuperAdminMembership() {
     const { getServicesByBranch } = useServicesStore();
     const services = branchFilter === 'all' ? getServicesByBranch() : getServicesByBranch(branchFilter);
   const [dialogType, setDialogType] = useState<'membership' | 'offer' | 'promo' | 'loyalty' | 'cashback'>('membership');
+  const [imageSource, setImageSource] = useState<'file' | 'url'>('file');
 
   // Form states
   const [membershipForm, setMembershipForm] = useState({
@@ -1063,6 +1064,11 @@ export default function SuperAdminMembership() {
                         </div>
                       </CardHeader>
                       <CardContent>
+                        {offer.image && (
+                          <div className="mb-4">
+                            <img src={offer.image} alt={offer.title} className="w-full h-40 object-cover rounded-md border border-gray-200" />
+                          </div>
+                        )}
                         <p className="text-sm text-gray-600 mb-4">{offer.description}</p>
                         <div className="space-y-2">
                           {offer.applicableServices && offer.applicableServices.length > 0 && (
@@ -1073,7 +1079,7 @@ export default function SuperAdminMembership() {
                           <div className="flex justify-between text-sm">
                             <span className="text-gray-600">Discount:</span>
                             <span className="font-medium">
-                              {offer.discountType === 'percentage' ? `${offer.discountValue}%` : `$${offer.discountValue}`}
+                              {offer.discountType === 'percentage' ? `${offer.discountValue}%` : `AED ${offer.discountValue}`}
                             </span>
                           </div>
                           <div className="flex justify-between text-sm">
@@ -1167,13 +1173,13 @@ export default function SuperAdminMembership() {
                           <div className="flex justify-between text-sm">
                             <span className="text-gray-600">Discount:</span>
                             <span className="font-medium">
-                              {promo.discountType === 'percentage' ? `${promo.discountValue}%` : `$${promo.discountValue}`}
+                              {promo.discountType === 'percentage' ? `${promo.discountValue}%` : `AED ${promo.discountValue}`}
                             </span>
                           </div>
                           {promo.minimumPurchase && (
                             <div className="flex justify-between text-sm">
                               <span className="text-gray-600">Min. Purchase:</span>
-                              <span className="font-medium">${promo.minimumPurchase}</span>
+                              <span className="font-medium">AED {promo.minimumPurchase}</span>
                             </div>
                           )}
                           <div className="flex justify-between text-sm">
@@ -1359,13 +1365,13 @@ export default function SuperAdminMembership() {
                           <div className="flex justify-between text-sm">
                             <span className="text-gray-600">Cashback:</span>
                             <span className="font-medium">
-                              {program.cashbackType === 'percentage' ? `${program.cashbackValue}%` : `$${program.cashbackValue}`}
+                              {program.cashbackType === 'percentage' ? `${program.cashbackValue}%` : `AED ${program.cashbackValue}`}
                             </span>
                           </div>
                           {program.minimumPurchase && (
                             <div className="flex justify-between text-sm">
                               <span className="text-gray-600">Min. Purchase:</span>
-                              <span className="font-medium">${program.minimumPurchase}</span>
+                              <span className="font-medium">AED {program.minimumPurchase}</span>
                             </div>
                           )}
                           <div className="flex justify-between text-sm">
@@ -1606,13 +1612,13 @@ export default function SuperAdminMembership() {
               </div>
             </div>
             <div>
-              <Label htmlFor="offer-discount-value">Discount Value</Label>
+              <Label htmlFor="offer-discount-value">Discount Value ({offerForm.discountType === 'percentage' ? '%' : 'AED'})</Label>
               <Input
                 id="offer-discount-value"
                 type="number"
                 value={offerForm.discountValue}
                 onChange={(e) => setOfferForm(prev => ({ ...prev, discountValue: parseFloat(e.target.value) || 0 }))}
-                placeholder={offerForm.discountType === 'percentage' ? "20" : "10.00"}
+                placeholder={offerForm.discountType === 'percentage' ? "20" : "100"}
               />
             </div>
             <div>
@@ -1710,25 +1716,44 @@ export default function SuperAdminMembership() {
               </p>
             </div>
             <div>
-              <Label>Offer Image (optional)</Label>
-              <div className="flex items-center gap-2">
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (!file) return;
-                    const reader = new FileReader();
-                    reader.onload = (ev) => {
-                      setOfferForm(prev => ({ ...prev, image: ev.target?.result as string }));
-                    };
-                    reader.readAsDataURL(file);
-                  }}
-                />
-                {offerForm.image && (
-                  <img src={offerForm.image} alt="Offer" className="w-16 h-10 object-cover rounded" />
-                )}
-              </div>
+              <Label>Promotional Image (optional)</Label>
+              <Tabs value={imageSource} onValueChange={(value) => setImageSource(value as 'file' | 'url')} className="w-full">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="file">Upload File</TabsTrigger>
+                  <TabsTrigger value="url">Image URL</TabsTrigger>
+                </TabsList>
+                <TabsContent value="file" className="space-y-3">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      const reader = new FileReader();
+                      reader.onload = (ev) => {
+                        setOfferForm(prev => ({ ...prev, image: ev.target?.result as string }));
+                      };
+                      reader.readAsDataURL(file);
+                    }}
+                    className="w-full"
+                  />
+                  <p className="text-xs text-gray-500">Max size: 5MB. Format: JPG, PNG, WebP</p>
+                </TabsContent>
+                <TabsContent value="url" className="space-y-3">
+                  <Input
+                    type="url"
+                    value={offerForm.image}
+                    onChange={(e) => setOfferForm(prev => ({ ...prev, image: e.target.value }))}
+                    placeholder="https://example.com/image.jpg"
+                  />
+                  <p className="text-xs text-gray-500">Enter a valid image URL</p>
+                </TabsContent>
+              </Tabs>
+              {offerForm.image && (
+                <div className="mt-3">
+                  <img src={offerForm.image} alt="Offer" className="w-full h-32 object-cover rounded border border-gray-200" />
+                </div>
+              )}
             </div>
           </div>
           <div className="flex justify-end space-x-3 pt-6 border-t border-gray-200 mt-8">
@@ -1745,393 +1770,632 @@ export default function SuperAdminMembership() {
 
       {/* Promo Code Dialog */}
       <Sheet open={promoDialogOpen} onOpenChange={setPromoDialogOpen}>
-        <SheetContent className="sm:max-w-md">
-          <SheetHeader>
-            <SheetTitle>{selectedItem ? 'Edit Promo Code' : 'Add New Promo Code'}</SheetTitle>
-            <SheetDescription>
-              {selectedItem ? 'Update promo code details.' : 'Create a discount code.'}
-            </SheetDescription>
+        <SheetContent className="w-full sm:max-w-3xl overflow-y-auto bg-gradient-to-b from-gray-50 to-white">
+          <SheetHeader className="sticky top-0 bg-white border-b-2 border-green-100 pb-6 mb-8 -mx-6 px-6 pt-6">
+            <div className="flex items-start justify-between">
+              <div className="flex-1">
+                <SheetTitle className="text-2xl font-bold text-gray-900 flex items-center gap-3">
+                  <div className="p-2 bg-green-100 rounded-lg">
+                    <Tag className="w-6 h-6 text-green-600" />
+                  </div>
+                  {selectedItem ? 'Edit Promo Code' : 'Add Promo Code'}
+                </SheetTitle>
+                <SheetDescription className="text-gray-600 mt-2">
+                  {selectedItem ? 'Update promo code details and settings' : 'Create a new promotional code with custom discounts'}
+                </SheetDescription>
+              </div>
+            </div>
           </SheetHeader>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="promo-code">Promo Code</Label>
-              <Input
-                id="promo-code"
-                value={promoForm.code}
-                onChange={(e) => setPromoForm(prev => ({ ...prev, code: e.target.value.toUpperCase() }))}
-                placeholder="WELCOME20"
-              />
+
+          <div className="space-y-8 pb-8">
+            {/* Basic Information Section */}
+            <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex items-center gap-3 mb-5">
+                <div className="p-2 bg-green-50 rounded-lg">
+                  <FileText className="w-5 h-5 text-green-600" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900">Basic Information</h3>
+              </div>
+              <div className="grid grid-cols-1 gap-4">
+                <div>
+                  <Label htmlFor="promo-code" className="text-sm font-medium text-gray-700">Promo Code</Label>
+                  <Input
+                    id="promo-code"
+                    value={promoForm.code}
+                    onChange={(e) => setPromoForm(prev => ({ ...prev, code: e.target.value.toUpperCase() }))}
+                    placeholder="e.g., WELCOME20"
+                    className="mt-1 font-mono"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="promo-description" className="text-sm font-medium text-gray-700">Description</Label>
+                  <Textarea
+                    id="promo-description"
+                    value={promoForm.description}
+                    onChange={(e) => setPromoForm(prev => ({ ...prev, description: e.target.value }))}
+                    placeholder="Describe what this promo code offers"
+                    className="mt-1 min-h-[80px]"
+                  />
+                </div>
+              </div>
             </div>
-            <div>
-              <Label htmlFor="promo-description">Description</Label>
-              <Textarea
-                id="promo-description"
-                value={promoForm.description}
-                onChange={(e) => setPromoForm(prev => ({ ...prev, description: e.target.value }))}
-                placeholder="Enter promo code description"
-                rows={3}
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
+
+            {/* Discount Configuration Section */}
+            <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex items-center gap-3 mb-5">
+                <div className="p-2 bg-green-50 rounded-lg">
+                  <Settings className="w-5 h-5 text-green-600" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900">Discount Configuration</h3>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="promo-discount-type" className="text-sm font-medium text-gray-700">Discount Type</Label>
+                  <Select
+                    value={promoForm.discountType}
+                    onValueChange={(value: 'percentage' | 'fixed') =>
+                      setPromoForm(prev => ({ ...prev, discountType: value }))
+                    }
+                  >
+                    <SelectTrigger className="mt-1">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="percentage">Percentage Off</SelectItem>
+                      <SelectItem value="fixed">Fixed Amount</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="promo-discount-value" className="text-sm font-medium text-gray-700">
+                    Discount Value ({promoForm.discountType === 'percentage' ? '%' : 'AED'})
+                  </Label>
+                  <Input
+                    id="promo-discount-value"
+                    type="number"
+                    value={promoForm.discountValue}
+                    onChange={(e) => setPromoForm(prev => ({ ...prev, discountValue: parseFloat(e.target.value) || 0 }))}
+                    placeholder={promoForm.discountType === 'percentage' ? "20" : "50"}
+                    className="mt-1"
+                  />
+                </div>
+              </div>
               <div>
-                <Label htmlFor="promo-discount-type">Discount Type</Label>
+                <Label htmlFor="promo-minimum-purchase" className="text-sm font-medium text-gray-700">Minimum Purchase (AED)</Label>
+                <Input
+                  id="promo-minimum-purchase"
+                  type="number"
+                  value={promoForm.minimumPurchase}
+                  onChange={(e) => setPromoForm(prev => ({ ...prev, minimumPurchase: e.target.value }))}
+                  placeholder="200"
+                  className="mt-1"
+                />
+              </div>
+            </div>
+
+            {/* Branch Assignment Section */}
+            <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex items-center gap-3 mb-5">
+                <div className="p-2 bg-green-50 rounded-lg">
+                  <Building className="w-5 h-5 text-green-600" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900">Branch Assignment</h3>
+              </div>
+              <div>
+                <Label htmlFor="promo-branch" className="text-sm font-medium text-gray-700">Branch (Optional - leave empty for global)</Label>
                 <Select
-                  value={promoForm.discountType}
-                  onValueChange={(value: 'percentage' | 'fixed') =>
-                    setPromoForm(prev => ({ ...prev, discountType: value }))
-                  }
+                  value={promoForm.branchId}
+                  onValueChange={(value) => setPromoForm(prev => ({ ...prev, branchId: value }))}
                 >
-                  <SelectTrigger>
-                    <SelectValue />
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Select branch (optional)" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="percentage">Percentage</SelectItem>
-                    <SelectItem value="fixed">Fixed Amount</SelectItem>
+                    <SelectItem value="">All Branches (Global)</SelectItem>
+                    {mockBranches.map(branch => (
+                      <SelectItem key={branch.id} value={branch.id}>
+                        {branch.name}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
+            </div>
+
+            {/* Validity Period Section */}
+            <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex items-center gap-3 mb-5">
+                <div className="p-2 bg-green-50 rounded-lg">
+                  <Calendar className="w-5 h-5 text-green-600" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900">Validity Period</h3>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="promo-valid-from" className="text-sm font-medium text-gray-700">Valid From</Label>
+                  <Input
+                    id="promo-valid-from"
+                    type="date"
+                    value={promoForm.validFrom}
+                    onChange={(e) => setPromoForm(prev => ({ ...prev, validFrom: e.target.value }))}
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="promo-valid-to" className="text-sm font-medium text-gray-700">Valid To</Label>
+                  <Input
+                    id="promo-valid-to"
+                    type="date"
+                    value={promoForm.validTo}
+                    onChange={(e) => setPromoForm(prev => ({ ...prev, validTo: e.target.value }))}
+                    className="mt-1"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Usage Limits Section */}
+            <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex items-center gap-3 mb-5">
+                <div className="p-2 bg-green-50 rounded-lg">
+                  <Users className="w-5 h-5 text-green-600" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900">Usage Limits</h3>
+              </div>
               <div>
-                <Label htmlFor="promo-discount-value">Discount Value</Label>
+                <Label htmlFor="promo-usage-limit" className="text-sm font-medium text-gray-700">Max Uses (Total)</Label>
                 <Input
-                  id="promo-discount-value"
+                  id="promo-usage-limit"
                   type="number"
-                  value={promoForm.discountValue}
-                  onChange={(e) => setPromoForm(prev => ({ ...prev, discountValue: parseFloat(e.target.value) || 0 }))}
-                  placeholder={promoForm.discountType === 'percentage' ? "20" : "10.00"}
+                  value={promoForm.usageLimit}
+                  onChange={(e) => setPromoForm(prev => ({ ...prev, usageLimit: e.target.value }))}
+                  placeholder="Unlimited"
+                  className="mt-1"
                 />
+                <p className="text-xs text-gray-500 mt-1">Maximum number of times this promo code can be used</p>
               </div>
             </div>
-            <div>
-              <Label htmlFor="promo-minimum-purchase">Minimum Purchase (optional)</Label>
-              <Input
-                id="promo-minimum-purchase"
-                type="number"
-                value={promoForm.minimumPurchase}
-                onChange={(e) => setPromoForm(prev => ({ ...prev, minimumPurchase: e.target.value }))}
-                placeholder="50.00"
-              />
-            </div>
-            <div>
-              <Label htmlFor="promo-branch">Branch (Optional - leave empty for global)</Label>
-              <Select
-                value={promoForm.branchId}
-                onValueChange={(value) => setPromoForm(prev => ({ ...prev, branchId: value }))}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select branch (optional)" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">All Branches (Global)</SelectItem>
-                  {mockBranches.map(branch => (
-                    <SelectItem key={branch.id} value={branch.id}>
-                      {branch.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="promo-valid-from">Valid From</Label>
-                <Input
-                  id="promo-valid-from"
-                  type="date"
-                  value={promoForm.validFrom}
-                  onChange={(e) => setPromoForm(prev => ({ ...prev, validFrom: e.target.value }))}
-                />
+
+            {/* Status Section */}
+            <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex items-center gap-3 mb-5">
+                <div className="p-2 bg-green-50 rounded-lg">
+                  <Eye className="w-5 h-5 text-green-600" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900">Status</h3>
               </div>
-              <div>
-                <Label htmlFor="promo-valid-to">Valid To</Label>
-                <Input
-                  id="promo-valid-to"
-                  type="date"
-                  value={promoForm.validTo}
-                  onChange={(e) => setPromoForm(prev => ({ ...prev, validTo: e.target.value }))}
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="promo-active"
+                  checked={promoForm.isActive}
+                  onChange={(e) => setPromoForm(prev => ({ ...prev, isActive: e.target.checked }))}
+                  className="w-4 h-4 rounded border-gray-300 text-green-600 focus:ring-green-500"
                 />
+                <Label htmlFor="promo-active" className="text-sm font-medium text-gray-700 cursor-pointer">
+                  Activate this promo code immediately
+                </Label>
               </div>
-            </div>
-            <div>
-              <Label htmlFor="promo-usage-limit">Usage Limit (optional)</Label>
-              <Input
-                id="promo-usage-limit"
-                type="number"
-                value={promoForm.usageLimit}
-                onChange={(e) => setPromoForm(prev => ({ ...prev, usageLimit: e.target.value }))}
-                placeholder="Unlimited"
-              />
-            </div>
-            <div className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                id="promo-active"
-                checked={promoForm.isActive}
-                onChange={(e) => setPromoForm(prev => ({ ...prev, isActive: e.target.checked }))}
-                className="rounded"
-              />
-              <Label htmlFor="promo-active">Active</Label>
             </div>
           </div>
-          <div className="flex justify-end space-x-2 mt-6">
-            <Button variant="outline" onClick={() => setPromoDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={selectedItem ? () => {} : handleAddPromoCode} disabled={!promoForm.code.trim()}>
-              {selectedItem ? 'Update' : 'Add'} Promo Code
-            </Button>
+
+          <div className="sticky bottom-0 bg-white border-t-2 border-green-100 pt-6 -mx-6 px-6 pb-6">
+            <div className="flex justify-end space-x-3">
+              <Button variant="outline" onClick={() => setPromoDialogOpen(false)} className="px-6">
+                Cancel
+              </Button>
+              <Button onClick={selectedItem ? () => {} : handleAddPromoCode} disabled={!promoForm.code.trim()} className="px-6 bg-green-600 hover:bg-green-700">
+                <Plus className="w-4 h-4 mr-2" />
+                {selectedItem ? 'Update' : 'Create'} Promo Code
+              </Button>
+            </div>
           </div>
         </SheetContent>
       </Sheet>
 
       {/* Loyalty Program Dialog */}
       <Sheet open={loyaltyDialogOpen} onOpenChange={setLoyaltyDialogOpen}>
-        <SheetContent className="sm:max-w-md">
-          <SheetHeader>
-            <SheetTitle>{selectedItem ? 'Edit Loyalty Program' : 'Add New Loyalty Program'}</SheetTitle>
-            <SheetDescription>
-              {selectedItem ? 'Update loyalty program details.' : 'Create a points-based loyalty program.'}
-            </SheetDescription>
+        <SheetContent className="w-full sm:max-w-3xl overflow-y-auto bg-gradient-to-b from-gray-50 to-white">
+          <SheetHeader className="sticky top-0 bg-white border-b-2 border-yellow-100 pb-6 mb-8 -mx-6 px-6 pt-6">
+            <div className="flex items-start justify-between">
+              <div className="flex-1">
+                <SheetTitle className="text-2xl font-bold text-gray-900 flex items-center gap-3">
+                  <div className="p-2 bg-yellow-100 rounded-lg">
+                    <Star className="w-6 h-6 text-yellow-600" />
+                  </div>
+                  {selectedItem ? 'Edit Loyalty Program' : 'Add Loyalty Program'}
+                </SheetTitle>
+                <SheetDescription className="text-gray-600 mt-2">
+                  {selectedItem ? 'Update loyalty program details and settings' : 'Create a points-based loyalty program to reward customer purchases'}
+                </SheetDescription>
+              </div>
+            </div>
           </SheetHeader>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="loyalty-name">Program Name</Label>
-              <Input
-                id="loyalty-name"
-                value={loyaltyForm.name}
-                onChange={(e) => setLoyaltyForm(prev => ({ ...prev, name: e.target.value }))}
-                placeholder="Enter program name"
-              />
-            </div>
-            <div>
-              <Label htmlFor="loyalty-description">Description</Label>
-              <Textarea
-                id="loyalty-description"
-                value={loyaltyForm.description}
-                onChange={(e) => setLoyaltyForm(prev => ({ ...prev, description: e.target.value }))}
-                placeholder="Enter program description"
-                rows={3}
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="loyalty-points-per-dollar">Points per Dollar</Label>
-                <Input
-                  id="loyalty-points-per-dollar"
-                  type="number"
-                  value={loyaltyForm.pointsPerDollar}
-                  onChange={(e) => setLoyaltyForm(prev => ({ ...prev, pointsPerDollar: parseInt(e.target.value) || 1 }))}
-                  placeholder="1"
-                />
+
+          <div className="space-y-8 pb-8">
+            {/* Basic Information Section */}
+            <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex items-center gap-3 mb-5">
+                <div className="p-2 bg-yellow-50 rounded-lg">
+                  <FileText className="w-5 h-5 text-yellow-600" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900">Basic Information</h3>
               </div>
-              <div>
-                <Label htmlFor="loyalty-redemption-rate">Redemption Rate ($ per point)</Label>
-                <Input
-                  id="loyalty-redemption-rate"
-                  type="number"
-                  step="0.01"
-                  value={loyaltyForm.redemptionRate}
-                  onChange={(e) => setLoyaltyForm(prev => ({ ...prev, redemptionRate: parseFloat(e.target.value) || 0.01 }))}
-                  placeholder="0.01"
-                />
+              <div className="grid grid-cols-1 gap-4">
+                <div>
+                  <Label htmlFor="loyalty-name" className="text-sm font-medium text-gray-700">Program Name</Label>
+                  <Input
+                    id="loyalty-name"
+                    value={loyaltyForm.name}
+                    onChange={(e) => setLoyaltyForm(prev => ({ ...prev, name: e.target.value }))}
+                    placeholder="e.g., Premium Rewards"
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="loyalty-description" className="text-sm font-medium text-gray-700">Description</Label>
+                  <Textarea
+                    id="loyalty-description"
+                    value={loyaltyForm.description}
+                    onChange={(e) => setLoyaltyForm(prev => ({ ...prev, description: e.target.value }))}
+                    placeholder="Describe how customers can earn and redeem points"
+                    className="mt-1 min-h-[80px]"
+                  />
+                </div>
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="loyalty-minimum-points">Minimum Points</Label>
-                <Input
-                  id="loyalty-minimum-points"
-                  type="number"
-                  value={loyaltyForm.minimumPoints}
-                  onChange={(e) => setLoyaltyForm(prev => ({ ...prev, minimumPoints: parseInt(e.target.value) || 100 }))}
-                  placeholder="100"
-                />
+
+            {/* Points Configuration Section */}
+            <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex items-center gap-3 mb-5">
+                <div className="p-2 bg-yellow-50 rounded-lg">
+                  <Settings className="w-5 h-5 text-yellow-600" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900">Points Configuration</h3>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="loyalty-points-per-dollar" className="text-sm font-medium text-gray-700">Points per Dollar</Label>
+                  <Input
+                    id="loyalty-points-per-dollar"
+                    type="number"
+                    value={loyaltyForm.pointsPerDollar}
+                    onChange={(e) => setLoyaltyForm(prev => ({ ...prev, pointsPerDollar: parseInt(e.target.value) || 1 }))}
+                    placeholder="1"
+                    className="mt-1"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Points earned per $1 spent</p>
+                </div>
+                <div>
+                  <Label htmlFor="loyalty-redemption-rate" className="text-sm font-medium text-gray-700">Redemption Rate</Label>
+                  <Input
+                    id="loyalty-redemption-rate"
+                    type="number"
+                    step="0.01"
+                    value={loyaltyForm.redemptionRate}
+                    onChange={(e) => setLoyaltyForm(prev => ({ ...prev, redemptionRate: parseFloat(e.target.value) || 0.01 }))}
+                    placeholder="0.01"
+                    className="mt-1"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">$ value per point redeemed</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Redemption Rules Section */}
+            <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex items-center gap-3 mb-5">
+                <div className="p-2 bg-yellow-50 rounded-lg">
+                  <Award className="w-5 h-5 text-yellow-600" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900">Redemption Rules</h3>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="loyalty-minimum-points" className="text-sm font-medium text-gray-700">Minimum Points for Redemption</Label>
+                  <Input
+                    id="loyalty-minimum-points"
+                    type="number"
+                    value={loyaltyForm.minimumPoints}
+                    onChange={(e) => setLoyaltyForm(prev => ({ ...prev, minimumPoints: parseInt(e.target.value) || 100 }))}
+                    placeholder="100"
+                    className="mt-1"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Minimum points required to redeem</p>
+                </div>
+                <div>
+                  <Label htmlFor="loyalty-expiry-days" className="text-sm font-medium text-gray-700">Points Expiry (days)</Label>
+                  <Input
+                    id="loyalty-expiry-days"
+                    type="number"
+                    value={loyaltyForm.expiryDays}
+                    onChange={(e) => setLoyaltyForm(prev => ({ ...prev, expiryDays: parseInt(e.target.value) || 365 }))}
+                    placeholder="365"
+                    className="mt-1"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Days until points expire</p>
+                </div>
               </div>
               <div>
-                <Label htmlFor="loyalty-expiry-days">Expiry Days</Label>
+                <Label htmlFor="loyalty-maximum-points" className="text-sm font-medium text-gray-700">Maximum Points (optional)</Label>
                 <Input
-                  id="loyalty-expiry-days"
+                  id="loyalty-maximum-points"
                   type="number"
-                  value={loyaltyForm.expiryDays}
-                  onChange={(e) => setLoyaltyForm(prev => ({ ...prev, expiryDays: parseInt(e.target.value) || 365 }))}
-                  placeholder="365"
+                  value={loyaltyForm.maximumPoints}
+                  onChange={(e) => setLoyaltyForm(prev => ({ ...prev, maximumPoints: e.target.value }))}
+                  placeholder="No limit"
+                  className="mt-1"
                 />
+                <p className="text-xs text-gray-500 mt-1">Maximum points a customer can accumulate</p>
               </div>
             </div>
-            <div>
-              <Label htmlFor="loyalty-branch">Branch (Optional - leave empty for global)</Label>
-              <Select
-                value={loyaltyForm.branchId}
-                onValueChange={(value) => setLoyaltyForm(prev => ({ ...prev, branchId: value }))}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select branch (optional)" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">All Branches (Global)</SelectItem>
-                  {mockBranches.map(branch => (
-                    <SelectItem key={branch.id} value={branch.id}>
-                      {branch.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+
+            {/* Branch Assignment Section */}
+            <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex items-center gap-3 mb-5">
+                <div className="p-2 bg-yellow-50 rounded-lg">
+                  <Building className="w-5 h-5 text-yellow-600" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900">Branch Assignment</h3>
+              </div>
+              <div>
+                <Label htmlFor="loyalty-branch" className="text-sm font-medium text-gray-700">Branch (Optional - leave empty for global)</Label>
+                <Select
+                  value={loyaltyForm.branchId}
+                  onValueChange={(value) => setLoyaltyForm(prev => ({ ...prev, branchId: value }))}
+                >
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Select branch (optional)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">All Branches (Global)</SelectItem>
+                    {mockBranches.map(branch => (
+                      <SelectItem key={branch.id} value={branch.id}>
+                        {branch.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-            <div>
-              <Label htmlFor="loyalty-maximum-points">Maximum Points (optional)</Label>
-              <Input
-                id="loyalty-maximum-points"
-                type="number"
-                value={loyaltyForm.maximumPoints}
-                onChange={(e) => setLoyaltyForm(prev => ({ ...prev, maximumPoints: e.target.value }))}
-                placeholder="No limit"
-              />
-            </div>
-            <div className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                id="loyalty-active"
-                checked={loyaltyForm.isActive}
-                onChange={(e) => setLoyaltyForm(prev => ({ ...prev, isActive: e.target.checked }))}
-                className="rounded"
-              />
-              <Label htmlFor="loyalty-active">Active</Label>
+
+            {/* Status Section */}
+            <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex items-center gap-3 mb-5">
+                <div className="p-2 bg-yellow-50 rounded-lg">
+                  <Eye className="w-5 h-5 text-yellow-600" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900">Status</h3>
+              </div>
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="loyalty-active"
+                  checked={loyaltyForm.isActive}
+                  onChange={(e) => setLoyaltyForm(prev => ({ ...prev, isActive: e.target.checked }))}
+                  className="w-4 h-4 rounded border-gray-300 text-yellow-600 focus:ring-yellow-500"
+                />
+                <Label htmlFor="loyalty-active" className="text-sm font-medium text-gray-700 cursor-pointer">
+                  Activate this loyalty program immediately
+                </Label>
+              </div>
             </div>
           </div>
-          <div className="flex justify-end space-x-2 mt-6">
-            <Button variant="outline" onClick={() => setLoyaltyDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={selectedItem ? () => {} : handleAddLoyaltyProgram} disabled={!loyaltyForm.name.trim()}>
-              {selectedItem ? 'Update' : 'Add'} Program
-            </Button>
+
+          <div className="sticky bottom-0 bg-white border-t-2 border-yellow-100 pt-6 -mx-6 px-6 pb-6">
+            <div className="flex justify-end space-x-3">
+              <Button variant="outline" onClick={() => setLoyaltyDialogOpen(false)} className="px-6">
+                Cancel
+              </Button>
+              <Button onClick={selectedItem ? () => {} : handleAddLoyaltyProgram} disabled={!loyaltyForm.name.trim()} className="px-6 bg-yellow-600 hover:bg-yellow-700">
+                <Plus className="w-4 h-4 mr-2" />
+                {selectedItem ? 'Update' : 'Create'} Program
+              </Button>
+            </div>
           </div>
         </SheetContent>
       </Sheet>
 
       {/* Cashback Program Dialog */}
       <Sheet open={cashbackDialogOpen} onOpenChange={setCashbackDialogOpen}>
-        <SheetContent className="sm:max-w-md">
-          <SheetHeader>
-            <SheetTitle>{selectedItem ? 'Edit Cashback Program' : 'Add New Cashback Program'}</SheetTitle>
-            <SheetDescription>
-              {selectedItem ? 'Update cashback program details.' : 'Create a cashback rewards program.'}
-            </SheetDescription>
+        <SheetContent className="w-full sm:max-w-3xl overflow-y-auto bg-gradient-to-b from-gray-50 to-white">
+          <SheetHeader className="sticky top-0 bg-white border-b-2 border-purple-100 pb-6 mb-8 -mx-6 px-6 pt-6">
+            <div className="flex items-start justify-between">
+              <div className="flex-1">
+                <SheetTitle className="text-2xl font-bold text-gray-900 flex items-center gap-3">
+                  <div className="p-2 bg-purple-100 rounded-lg">
+                    <DollarSign className="w-6 h-6 text-purple-600" />
+                  </div>
+                  {selectedItem ? 'Edit Cashback Program' : 'Add Cashback Program'}
+                </SheetTitle>
+                <SheetDescription className="text-gray-600 mt-2">
+                  {selectedItem ? 'Update cashback program details and settings' : 'Create a cashback rewards program to give customers money back on purchases'}
+                </SheetDescription>
+              </div>
+            </div>
           </SheetHeader>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="cashback-name">Program Name</Label>
-              <Input
-                id="cashback-name"
-                value={cashbackForm.name}
-                onChange={(e) => setCashbackForm(prev => ({ ...prev, name: e.target.value }))}
-                placeholder="Enter program name"
-              />
+
+          <div className="space-y-8 pb-8">
+            {/* Basic Information Section */}
+            <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex items-center gap-3 mb-5">
+                <div className="p-2 bg-purple-50 rounded-lg">
+                  <FileText className="w-5 h-5 text-purple-600" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900">Basic Information</h3>
+              </div>
+              <div className="grid grid-cols-1 gap-4">
+                <div>
+                  <Label htmlFor="cashback-name" className="text-sm font-medium text-gray-700">Program Name</Label>
+                  <Input
+                    id="cashback-name"
+                    value={cashbackForm.name}
+                    onChange={(e) => setCashbackForm(prev => ({ ...prev, name: e.target.value }))}
+                    placeholder="e.g., Premium Cashback"
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="cashback-description" className="text-sm font-medium text-gray-700">Description</Label>
+                  <Textarea
+                    id="cashback-description"
+                    value={cashbackForm.description}
+                    onChange={(e) => setCashbackForm(prev => ({ ...prev, description: e.target.value }))}
+                    placeholder="Describe how customers can earn cashback rewards"
+                    className="mt-1 min-h-[80px]"
+                  />
+                </div>
+              </div>
             </div>
-            <div>
-              <Label htmlFor="cashback-description">Description</Label>
-              <Textarea
-                id="cashback-description"
-                value={cashbackForm.description}
-                onChange={(e) => setCashbackForm(prev => ({ ...prev, description: e.target.value }))}
-                placeholder="Enter program description"
-                rows={3}
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
+
+            {/* Cashback Configuration Section */}
+            <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex items-center gap-3 mb-5">
+                <div className="p-2 bg-purple-50 rounded-lg">
+                  <Settings className="w-5 h-5 text-purple-600" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900">Cashback Configuration</h3>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="cashback-type" className="text-sm font-medium text-gray-700">Cashback Type</Label>
+                  <Select
+                    value={cashbackForm.cashbackType}
+                    onValueChange={(value: 'percentage' | 'fixed') =>
+                      setCashbackForm(prev => ({ ...prev, cashbackType: value }))
+                    }
+                  >
+                    <SelectTrigger className="mt-1">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="percentage">Percentage of Purchase</SelectItem>
+                      <SelectItem value="fixed">Fixed Amount</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="cashback-value" className="text-sm font-medium text-gray-700">
+                    Cashback Value ({cashbackForm.cashbackType === 'percentage' ? '%' : 'AED'})
+                  </Label>
+                  <Input
+                    id="cashback-value"
+                    type="number"
+                    value={cashbackForm.cashbackValue}
+                    onChange={(e) => setCashbackForm(prev => ({ ...prev, cashbackValue: parseFloat(e.target.value) || 0 }))}
+                    placeholder={cashbackForm.cashbackType === 'percentage' ? "5" : "50"}
+                    className="mt-1"
+                  />
+                </div>
+              </div>
               <div>
-                <Label htmlFor="cashback-type">Cashback Type</Label>
+                <Label htmlFor="cashback-minimum-purchase" className="text-sm font-medium text-gray-700">Minimum Purchase (AED)</Label>
+                <Input
+                  id="cashback-minimum-purchase"
+                  type="number"
+                  value={cashbackForm.minimumPurchase}
+                  onChange={(e) => setCashbackForm(prev => ({ ...prev, minimumPurchase: e.target.value }))}
+                  placeholder="500"
+                  className="mt-1"
+                />
+                <p className="text-xs text-gray-500 mt-1">Minimum purchase amount required to earn cashback</p>
+              </div>
+            </div>
+
+            {/* Branch Assignment Section */}
+            <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex items-center gap-3 mb-5">
+                <div className="p-2 bg-purple-50 rounded-lg">
+                  <Building className="w-5 h-5 text-purple-600" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900">Branch Assignment</h3>
+              </div>
+              <div>
+                <Label htmlFor="cashback-branch" className="text-sm font-medium text-gray-700">Branch (Optional - leave empty for global)</Label>
                 <Select
-                  value={cashbackForm.cashbackType}
-                  onValueChange={(value: 'percentage' | 'fixed') =>
-                    setCashbackForm(prev => ({ ...prev, cashbackType: value }))
-                  }
+                  value={cashbackForm.branchId}
+                  onValueChange={(value) => setCashbackForm(prev => ({ ...prev, branchId: value }))}
                 >
-                  <SelectTrigger>
-                    <SelectValue />
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Select branch (optional)" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="percentage">Percentage</SelectItem>
-                    <SelectItem value="fixed">Fixed Amount</SelectItem>
+                    <SelectItem value="">All Branches (Global)</SelectItem>
+                    {mockBranches.map(branch => (
+                      <SelectItem key={branch.id} value={branch.id}>
+                        {branch.name}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
-              <div>
-                <Label htmlFor="cashback-value">Cashback Value</Label>
-                <Input
-                  id="cashback-value"
-                  type="number"
-                  value={cashbackForm.cashbackValue}
-                  onChange={(e) => setCashbackForm(prev => ({ ...prev, cashbackValue: parseFloat(e.target.value) || 0 }))}
-                  placeholder={cashbackForm.cashbackType === 'percentage' ? "5" : "10.00"}
-                />
+            </div>
+
+            {/* Validity Period Section */}
+            <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex items-center gap-3 mb-5">
+                <div className="p-2 bg-purple-50 rounded-lg">
+                  <Calendar className="w-5 h-5 text-purple-600" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900">Validity Period</h3>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="cashback-valid-from" className="text-sm font-medium text-gray-700">Valid From</Label>
+                  <Input
+                    id="cashback-valid-from"
+                    type="date"
+                    value={cashbackForm.validFrom}
+                    onChange={(e) => setCashbackForm(prev => ({ ...prev, validFrom: e.target.value }))}
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="cashback-valid-to" className="text-sm font-medium text-gray-700">Valid To</Label>
+                  <Input
+                    id="cashback-valid-to"
+                    type="date"
+                    value={cashbackForm.validTo}
+                    onChange={(e) => setCashbackForm(prev => ({ ...prev, validTo: e.target.value }))}
+                    className="mt-1"
+                  />
+                </div>
               </div>
             </div>
-            <div>
-              <Label htmlFor="cashback-minimum-purchase">Minimum Purchase (optional)</Label>
-              <Input
-                id="cashback-minimum-purchase"
-                type="number"
-                value={cashbackForm.minimumPurchase}
-                onChange={(e) => setCashbackForm(prev => ({ ...prev, minimumPurchase: e.target.value }))}
-                placeholder="100.00"
-              />
-            </div>
-            <div>
-              <Label htmlFor="cashback-branch">Branch (Optional - leave empty for global)</Label>
-              <Select
-                value={cashbackForm.branchId}
-                onValueChange={(value) => setCashbackForm(prev => ({ ...prev, branchId: value }))}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select branch (optional)" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">All Branches (Global)</SelectItem>
-                  {mockBranches.map(branch => (
-                    <SelectItem key={branch.id} value={branch.id}>
-                      {branch.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="cashback-valid-from">Valid From</Label>
-                <Input
-                  id="cashback-valid-from"
-                  type="date"
-                  value={cashbackForm.validFrom}
-                  onChange={(e) => setCashbackForm(prev => ({ ...prev, validFrom: e.target.value }))}
-                />
+
+            {/* Status Section */}
+            <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex items-center gap-3 mb-5">
+                <div className="p-2 bg-purple-50 rounded-lg">
+                  <Eye className="w-5 h-5 text-purple-600" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900">Status</h3>
               </div>
-              <div>
-                <Label htmlFor="cashback-valid-to">Valid To</Label>
-                <Input
-                  id="cashback-valid-to"
-                  type="date"
-                  value={cashbackForm.validTo}
-                  onChange={(e) => setCashbackForm(prev => ({ ...prev, validTo: e.target.value }))}
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="cashback-active"
+                  checked={cashbackForm.isActive}
+                  onChange={(e) => setCashbackForm(prev => ({ ...prev, isActive: e.target.checked }))}
+                  className="w-4 h-4 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
                 />
+                <Label htmlFor="cashback-active" className="text-sm font-medium text-gray-700 cursor-pointer">
+                  Activate this cashback program immediately
+                </Label>
               </div>
-            </div>
-            <div className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                id="cashback-active"
-                checked={cashbackForm.isActive}
-                onChange={(e) => setCashbackForm(prev => ({ ...prev, isActive: e.target.checked }))}
-                className="rounded"
-              />
-              <Label htmlFor="cashback-active">Active</Label>
             </div>
           </div>
-          <div className="flex justify-end space-x-2 mt-6">
-            <Button variant="outline" onClick={() => setCashbackDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={selectedItem ? () => {} : handleAddCashbackProgram} disabled={!cashbackForm.name.trim()}>
-              {selectedItem ? 'Update' : 'Add'} Program
-            </Button>
+
+          <div className="sticky bottom-0 bg-white border-t-2 border-purple-100 pt-6 -mx-6 px-6 pb-6">
+            <div className="flex justify-end space-x-3">
+              <Button variant="outline" onClick={() => setCashbackDialogOpen(false)} className="px-6">
+                Cancel
+              </Button>
+              <Button onClick={selectedItem ? () => {} : handleAddCashbackProgram} disabled={!cashbackForm.name.trim()} className="px-6 bg-purple-600 hover:bg-purple-700">
+                <Plus className="w-4 h-4 mr-2" />
+                {selectedItem ? 'Update' : 'Create'} Program
+              </Button>
+            </div>
           </div>
         </SheetContent>
       </Sheet>
