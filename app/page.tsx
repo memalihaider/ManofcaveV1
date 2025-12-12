@@ -4,12 +4,24 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Carousel } from "@/components/ui/carousel";
-import { Scissors, MapPin, Star, Clock, Phone, Mail, Gift, Copy, ChevronDown } from "lucide-react";
+import { Scissors, MapPin, Star, Clock, Phone, Mail, Gift, Copy, ChevronDown, ShoppingCart } from "lucide-react";
 import { Header } from "@/components/shared/Header";
 import Link from "next/link";
 import { BookingModal } from "@/components/booking/BookingModal";
+import { useCartStore } from "@/stores/cart.store";
 
 export default function Home() {
+  const { addItem } = useCartStore();
+
+  const handleAddToCart = (product: any) => {
+    addItem({
+      id: product.id || product.name.toLowerCase().replace(/\s+/g, '-'),
+      name: product.name,
+      price: parseFloat(product.price.replace('$', '')),
+      image: product.image,
+    });
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -104,56 +116,62 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {[
               {
-                name: "Downtown",
-                branches: 2,
+                name: "Alwahda",
                 image: "https://images.unsplash.com/photo-1621605815971-fbc98d665033?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2071&q=80",
-                description: "Heart of the city"
+                description: "Premium grooming in the heart of Alwahda"
               },
               {
-                name: "Midtown",
-                branches: 2,
+                name: "Madinat",
                 image: "https://images.unsplash.com/photo-1562322140-8baeececf3df?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2069&q=80",
-                description: "Business district"
+                description: "Modern styling in Madinat district"
               },
               {
-                name: "Uptown",
-                branches: 2,
+                name: "Khalifa",
                 image: "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
-                description: "Luxury district"
+                description: "Luxury experience in Khalifa area"
               },
               {
-                name: "Suburbs",
-                branches: 2,
+                name: "Marina Mall",
                 image: "https://images.unsplash.com/photo-1585747860715-2ba37e788b70?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2074&q=80",
-                description: "Residential areas"
+                description: "Convenient shopping center location"
               },
-            ].map((region, index) => (
-              <Card key={region.name} className="group cursor-pointer hover:shadow-2xl transition-all duration-500 border-0 shadow-lg overflow-hidden bg-white hover:-translate-y-2" style={{ animationDelay: `${index * 0.1}s` }}>
+              {
+                name: "WTC Branch",
+                image: "https://images.unsplash.com/photo-1622296089863-9a4bf8bb63df?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
+                description: "Business district professional services"
+              },
+              {
+                name: "Salam Street Branch",
+                image: "https://images.unsplash.com/photo-1582095133179-bfd08e2fc6b3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
+                description: "Traditional charm with modern expertise"
+              },
+            ].map((branch, index) => (
+              <Card key={branch.name} className="group cursor-pointer hover:shadow-2xl transition-all duration-500 border-0 shadow-lg overflow-hidden bg-white hover:-translate-y-2" style={{ animationDelay: `${index * 0.1}s` }}>
                 <div className="relative overflow-hidden">
                   <img
-                    src={region.image}
-                    alt={`${region.name} barber shop`}
+                    src={branch.image}
+                    alt={`${branch.name} barber shop`}
                     className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-700"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                   <div className="absolute top-4 right-4">
                     <Badge className="bg-white/90 text-primary font-semibold shadow-lg">
-                      {region.branches} Branches
+                      Open Now
                     </Badge>
                   </div>
                 </div>
                 <CardHeader className="text-center pb-4">
                   <CardTitle className="text-primary text-xl font-bold group-hover:text-secondary transition-colors duration-300">
-                    {region.name}
+                    {branch.name}
                   </CardTitle>
                   <CardDescription className="text-gray-600 font-medium">
-                    {region.description}
+                    {branch.description}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="pt-0">
                   <Button className="w-full bg-primary hover:bg-primary/90 text-white group-hover:bg-secondary group-hover:text-primary transition-all duration-300">
                     <MapPin className="w-4 h-4 mr-2" />
-                    View Locations
+                    Visit Branch
                   </Button>
                 </CardContent>
               </Card>
@@ -706,6 +724,7 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
             {[
               {
+                id: 'luxury-shampoo',
                 name: "Luxury Shampoo",
                 price: "$45",
                 description: "Organic ingredients for healthy, voluminous hair with professional salon results",
@@ -714,6 +733,7 @@ export default function Home() {
                 badge: "Bestseller"
               },
               {
+                id: 'beard-oil',
                 name: "Beard Oil",
                 price: "$35",
                 description: "Nourishing blend of natural oils for soft, manageable beard care",
@@ -722,6 +742,7 @@ export default function Home() {
                 badge: "Professional"
               },
               {
+                id: 'styling-wax',
                 name: "Styling Wax",
                 price: "$28",
                 description: "Professional hold and natural shine for all hair types and styles",
@@ -730,6 +751,7 @@ export default function Home() {
                 badge: "Trending"
               },
               {
+                id: 'aftershave-balm',
                 name: "Aftershave Balm",
                 price: "$40",
                 description: "Soothing and moisturizing balm that calms skin after shaving",
@@ -767,9 +789,18 @@ export default function Home() {
                 </CardHeader>
                 <CardContent className="pt-0">
                   <p className="text-muted-foreground text-sm mb-4 leading-relaxed">{product.description}</p>
-                  <Button asChild variant="outline" className="w-full border-primary text-primary hover:bg-primary hover:text-white transition-all duration-300 font-semibold">
-                    <Link href="/products">View Details</Link>
-                  </Button>
+                  <div className="space-y-2">
+                    <Button 
+                      onClick={() => handleAddToCart(product)}
+                      className="w-full bg-secondary hover:bg-secondary/90 text-primary font-semibold"
+                    >
+                      <ShoppingCart className="w-4 h-4 mr-2" />
+                      Add to Cart
+                    </Button>
+                    <Button asChild variant="outline" className="w-full border-primary text-primary hover:bg-primary hover:text-white transition-all duration-300 font-semibold">
+                      <Link href="/products">View Details</Link>
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             ))}
