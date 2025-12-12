@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -22,9 +23,7 @@ export default function CartPage() {
     name: '',
     email: '',
     phone: '',
-    address: '',
-    city: '',
-    zipCode: '',
+    pickupLocation: '',
   });
 
   const subtotal = getTotal();
@@ -47,7 +46,7 @@ export default function CartPage() {
 
   const handlePayment = () => {
     // Validate customer info
-    if (!customerInfo.name || !customerInfo.email || !customerInfo.phone || !customerInfo.address) {
+    if (!customerInfo.name || !customerInfo.email || !customerInfo.phone || !customerInfo.pickupLocation) {
       alert('Please fill in all required fields');
       return;
     }
@@ -235,33 +234,20 @@ export default function CartPage() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="address">Address *</Label>
-                    <Input
-                      id="address"
-                      value={customerInfo.address}
-                      onChange={(e) => setCustomerInfo({...customerInfo, address: e.target.value})}
-                      placeholder="Enter your address"
-                    />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="city">City</Label>
-                      <Input
-                        id="city"
-                        value={customerInfo.city}
-                        onChange={(e) => setCustomerInfo({...customerInfo, city: e.target.value})}
-                        placeholder="Enter your city"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="zipCode">ZIP Code</Label>
-                      <Input
-                        id="zipCode"
-                        value={customerInfo.zipCode}
-                        onChange={(e) => setCustomerInfo({...customerInfo, zipCode: e.target.value})}
-                        placeholder="Enter ZIP code"
-                      />
-                    </div>
+                    <Label htmlFor="pickupLocation">Pickup Location *</Label>
+                    <Select value={customerInfo.pickupLocation} onValueChange={(value) => setCustomerInfo({...customerInfo, pickupLocation: value})}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select pickup location" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="alwahda">Alwahda</SelectItem>
+                        <SelectItem value="madinat">Madinat</SelectItem>
+                        <SelectItem value="khalifa">Khalifa</SelectItem>
+                        <SelectItem value="marina-mall">Marina Mall</SelectItem>
+                        <SelectItem value="wtc-branch">WTC Branch</SelectItem>
+                        <SelectItem value="salam-street-branch">Salam Street Branch</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 </CardContent>
               </Card>
