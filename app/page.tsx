@@ -63,10 +63,12 @@ export default function Home() {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-12">
-            <Button size="lg" className="bg-secondary hover:bg-secondary/90 text-primary font-semibold px-10 py-4 text-lg shadow-2xl hover:shadow-secondary/25 transition-all duration-300 transform hover:scale-105">
-              <Scissors className="w-5 h-5 mr-2" />
-              Book Appointment
-            </Button>
+            <BookingModal>
+              <Button size="lg" className="bg-secondary hover:bg-secondary/90 text-primary font-semibold px-10 py-4 text-lg shadow-2xl hover:shadow-secondary/25 transition-all duration-300 transform hover:scale-105">
+                <Scissors className="w-5 h-5 mr-2" />
+                Book Appointment
+              </Button>
+            </BookingModal>
             <Button size="lg" variant="outline" className="border-2 border-white text-white hover:bg-white hover:text-primary px-10 py-4 text-lg backdrop-blur-sm bg-white/10 shadow-2xl transition-all duration-300">
               <MapPin className="w-5 h-5 mr-2" />
               Find Location

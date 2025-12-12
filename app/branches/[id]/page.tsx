@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Header } from "@/components/shared/Header";
 import { MapPin, Star, Clock, Phone, User, Scissors, Award } from "lucide-react";
+import { BookingModal } from "@/components/booking/BookingModal";
 
 const branchData = {
   downtown: {
@@ -91,9 +92,11 @@ export default function BranchPage({ params }: { params: { id: string } }) {
               <p className="text-sm text-muted-foreground">{branch.phone}</p>
             </Card>
             <Card className="p-6 text-center">
-              <Button className="w-full bg-secondary hover:bg-secondary/90 text-primary">
-                Book Appointment
-              </Button>
+              <BookingModal>
+                <Button className="w-full bg-secondary hover:bg-secondary/90 text-primary">
+                  Book Appointment
+                </Button>
+              </BookingModal>
             </Card>
           </div>
 

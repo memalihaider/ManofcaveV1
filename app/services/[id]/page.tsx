@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Carousel } from '@/components/ui/carousel';
 import { Scissors, Star, ArrowLeft, Heart, Share2, Clock, MapPin, Calendar, ChevronLeft, ChevronRight, User } from 'lucide-react';
+import { BookingModal } from '@/components/booking/BookingModal';
 
 export default function ServiceDetailPage() {
   const params = useParams();
@@ -368,10 +369,12 @@ export default function ServiceDetailPage() {
 
             {/* Action Buttons */}
             <div className="flex space-x-4">
-              <Button size="lg" className="flex-1">
-                <Calendar className="w-5 h-5 mr-2" />
-                Book Appointment
-              </Button>
+              <BookingModal serviceId={service.id.toString()} serviceName={service.name}>
+                <Button size="lg" className="flex-1">
+                  <Calendar className="w-5 h-5 mr-2" />
+                  Book Appointment
+                </Button>
+              </BookingModal>
               <Button size="lg" variant="outline">
                 <Heart className="w-5 h-5 mr-2" />
                 Save
