@@ -113,7 +113,7 @@ export default function Home() {
             </p>
           </div>
 
-          <Carousel className="max-w-6xl mx-auto" autoPlay={true} autoPlayInterval={5000} showDots={true}>
+          <Carousel className="max-w-6xl mx-auto" autoPlay={false} showDots={false}>
             {[
               {
                 name: "Alwahda",
@@ -145,36 +145,47 @@ export default function Home() {
                 image: "https://images.unsplash.com/photo-1582095133179-bfd08e2fc6b3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
                 description: "Traditional charm with modern expertise"
               },
-            ].map((branch, index) => (
-              <Card key={branch.name} className="group cursor-pointer hover:shadow-2xl transition-all duration-500 border-0 shadow-lg overflow-hidden bg-white hover:-translate-y-2 mx-4">
-                <div className="relative overflow-hidden">
-                  <img
-                    src={branch.image}
-                    alt={`${branch.name} barber shop`}
-                    className="w-full h-80 object-cover group-hover:scale-110 transition-transform duration-700"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                  <div className="absolute top-4 right-4">
-                    <Badge className="bg-white/90 text-primary font-semibold shadow-lg">
-                      Open Now
-                    </Badge>
-                  </div>
-                </div>
-                <CardHeader className="text-center pb-4">
-                  <CardTitle className="text-primary text-2xl font-bold group-hover:text-secondary transition-colors duration-300">
-                    {branch.name}
-                  </CardTitle>
-                  <CardDescription className="text-gray-600 font-medium text-lg">
-                    {branch.description}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="pt-0">
-                  <Button className="w-full bg-primary hover:bg-primary/90 text-white group-hover:bg-secondary group-hover:text-primary transition-all duration-300 text-lg py-3">
-                    <MapPin className="w-5 h-5 mr-2" />
-                    Visit Branch
-                  </Button>
-                </CardContent>
-              </Card>
+            ].reduce((slides: any[], branch, index) => {
+              if (index % 4 === 0) {
+                slides.push([branch]);
+              } else {
+                slides[slides.length - 1].push(branch);
+              }
+              return slides;
+            }, []).map((slideBranches, slideIndex) => (
+              <div key={slideIndex} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 px-4">
+                {slideBranches.map((branch: any) => (
+                  <Card key={branch.name} className="group cursor-pointer hover:shadow-2xl transition-all duration-500 border-0 shadow-lg overflow-hidden bg-white hover:-translate-y-2">
+                    <div className="relative overflow-hidden">
+                      <img
+                        src={branch.image}
+                        alt={`${branch.name} barber shop`}
+                        className="w-full h-80 object-cover group-hover:scale-110 transition-transform duration-700"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                      <div className="absolute top-4 right-4">
+                        <Badge className="bg-white/90 text-primary font-semibold shadow-lg">
+                          Open Now
+                        </Badge>
+                      </div>
+                    </div>
+                    <CardHeader className="text-center pb-4">
+                      <CardTitle className="text-primary text-2xl font-bold group-hover:text-secondary transition-colors duration-300">
+                        {branch.name}
+                      </CardTitle>
+                      <CardDescription className="text-gray-600 font-medium text-lg">
+                        {branch.description}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="pt-0">
+                      <Button className="w-full bg-primary hover:bg-primary/90 text-white group-hover:bg-secondary group-hover:text-primary transition-all duration-300 text-lg py-3">
+                        <MapPin className="w-5 h-5 mr-2" />
+                        Visit Branch
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
             ))}
           </Carousel>
         </div>
