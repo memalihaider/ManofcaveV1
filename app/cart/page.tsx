@@ -31,7 +31,7 @@ export default function CartPage() {
   const tax = subtotal * 0.08; // 8% tax
   const total = subtotal + shipping + tax;
 
-  const handleQuantityChange = (id: number, newQuantity: number) => {
+  const handleQuantityChange = (id: string | number, newQuantity: number) => {
     if (newQuantity <= 0) {
       removeItem(id);
     } else {

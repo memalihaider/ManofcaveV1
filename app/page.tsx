@@ -113,31 +113,31 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <Carousel className="max-w-6xl mx-auto" autoPlay={true} autoPlayInterval={5000} showDots={true}>
             {[
               {
                 name: "Alwahda",
-                image: "https://images.unsplash.com/photo-1621605815971-fbc98d665033?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2071&q=80",
+                image: "https://images.unsplash.com/photo-1622296089863-9a4bf8bb63df?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
                 description: "Premium grooming in the heart of Alwahda"
               },
               {
                 name: "Madinat",
-                image: "https://images.unsplash.com/photo-1562322140-8baeececf3df?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2069&q=80",
+                image: "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
                 description: "Modern styling in Madinat district"
               },
               {
                 name: "Khalifa",
-                image: "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
+                image: "https://images.unsplash.com/photo-1621605815971-fbc98d665033?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2071&q=80",
                 description: "Luxury experience in Khalifa area"
               },
               {
                 name: "Marina Mall",
-                image: "https://images.unsplash.com/photo-1585747860715-2ba37e788b70?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2074&q=80",
+                image: "https://images.unsplash.com/photo-1562322140-8baeececf3df?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2069&q=80",
                 description: "Convenient shopping center location"
               },
               {
                 name: "WTC Branch",
-                image: "https://images.unsplash.com/photo-1622296089863-9a4bf8bb63df?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
+                image: "https://images.unsplash.com/photo-1585747860715-2ba37e788b70?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2074&q=80",
                 description: "Business district professional services"
               },
               {
@@ -146,12 +146,12 @@ export default function Home() {
                 description: "Traditional charm with modern expertise"
               },
             ].map((branch, index) => (
-              <Card key={branch.name} className="group cursor-pointer hover:shadow-2xl transition-all duration-500 border-0 shadow-lg overflow-hidden bg-white hover:-translate-y-2" style={{ animationDelay: `${index * 0.1}s` }}>
+              <Card key={branch.name} className="group cursor-pointer hover:shadow-2xl transition-all duration-500 border-0 shadow-lg overflow-hidden bg-white hover:-translate-y-2 mx-4">
                 <div className="relative overflow-hidden">
                   <img
                     src={branch.image}
                     alt={`${branch.name} barber shop`}
-                    className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-700"
+                    className="w-full h-80 object-cover group-hover:scale-110 transition-transform duration-700"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                   <div className="absolute top-4 right-4">
@@ -161,22 +161,22 @@ export default function Home() {
                   </div>
                 </div>
                 <CardHeader className="text-center pb-4">
-                  <CardTitle className="text-primary text-xl font-bold group-hover:text-secondary transition-colors duration-300">
+                  <CardTitle className="text-primary text-2xl font-bold group-hover:text-secondary transition-colors duration-300">
                     {branch.name}
                   </CardTitle>
-                  <CardDescription className="text-gray-600 font-medium">
+                  <CardDescription className="text-gray-600 font-medium text-lg">
                     {branch.description}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="pt-0">
-                  <Button className="w-full bg-primary hover:bg-primary/90 text-white group-hover:bg-secondary group-hover:text-primary transition-all duration-300">
-                    <MapPin className="w-4 h-4 mr-2" />
+                  <Button className="w-full bg-primary hover:bg-primary/90 text-white group-hover:bg-secondary group-hover:text-primary transition-all duration-300 text-lg py-3">
+                    <MapPin className="w-5 h-5 mr-2" />
                     Visit Branch
                   </Button>
                 </CardContent>
               </Card>
             ))}
-          </div>
+          </Carousel>
         </div>
       </section>
 
@@ -798,7 +798,7 @@ export default function Home() {
                       Add to Cart
                     </Button>
                     <Button asChild variant="outline" className="w-full border-primary text-primary hover:bg-primary hover:text-white transition-all duration-300 font-semibold">
-                      <Link href="/products">View Details</Link>
+                      <Link href={`/products/${product.id}`}>View Details</Link>
                     </Button>
                   </div>
                 </CardContent>
