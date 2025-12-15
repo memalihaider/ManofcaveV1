@@ -12,6 +12,7 @@ import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   MessageCircle,
   Send,
@@ -25,7 +26,11 @@ import {
   Star,
   Eye,
   Reply,
-  Shield
+  Shield,
+  Smartphone,
+  TrendingUp,
+  Edit,
+  MessageSquare
 } from "lucide-react";
 import { PermissionProtectedRoute, PermissionProtectedSection } from "@/components/PermissionProtected";
 import { AdminSidebar, AdminMobileSidebar } from "@/components/admin/AdminSidebar";
@@ -325,7 +330,7 @@ export default function AdminMessages() {
           <div className="flex-1 overflow-hidden">
             <Tabs defaultValue="chat" className="h-full flex flex-col">
               <div className="bg-white border-b px-4 py-2">
-                <TabsList className="grid w-full grid-cols-2 max-w-md">
+                <TabsList className="grid w-full grid-cols-4 max-w-2xl">
                   <TabsTrigger value="chat" className="flex items-center gap-2">
                     <MessageCircle className="w-4 h-4" />
                     Chat
@@ -333,7 +338,19 @@ export default function AdminMessages() {
                   <PermissionProtectedSection requiredPermissions={['feedback.respond']}>
                     <TabsTrigger value="feedback" className="flex items-center gap-2">
                       <Shield className="w-4 h-4" />
-                      Feedback (Secret)
+                      Feedback
+                    </TabsTrigger>
+                  </PermissionProtectedSection>
+                  <PermissionProtectedSection requiredPermissions={['messages.view']}>
+                    <TabsTrigger value="sms" className="flex items-center gap-2">
+                      <Phone className="w-4 h-4" />
+                      SMS
+                    </TabsTrigger>
+                  </PermissionProtectedSection>
+                  <PermissionProtectedSection requiredPermissions={['messages.view']}>
+                    <TabsTrigger value="whatsapp" className="flex items-center gap-2">
+                      <MessageSquare className="w-4 h-4" />
+                      WhatsApp
                     </TabsTrigger>
                   </PermissionProtectedSection>
                 </TabsList>
@@ -677,6 +694,353 @@ export default function AdminMessages() {
                   </div>
                 </div>
               </TabsContent>
+              </PermissionProtectedSection>
+
+              {/* SMS Integration Tab */}
+              <PermissionProtectedSection requiredPermissions={['messages.view']}>
+                <TabsContent value="sms" className="flex-1 m-0 overflow-hidden">
+                  <div className="h-full overflow-auto p-6">
+                    <div className="grid gap-6">
+                      {/* SMS Stats */}
+                      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <Card>
+                          <CardContent className="p-4">
+                            <div className="flex items-center gap-2">
+                              <Phone className="w-8 h-8 text-blue-600" />
+                              <div>
+                                <p className="text-2xl font-bold">1,247</p>
+                                <p className="text-sm text-gray-600">SMS Sent Today</p>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                        <Card>
+                          <CardContent className="p-4">
+                            <div className="flex items-center gap-2">
+                              <Check className="w-8 h-8 text-green-600" />
+                              <div>
+                                <p className="text-2xl font-bold">98.5%</p>
+                                <p className="text-sm text-gray-600">Delivery Rate</p>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                        <Card>
+                          <CardContent className="p-4">
+                            <div className="flex items-center gap-2">
+                              <MessageCircle className="w-8 h-8 text-purple-600" />
+                              <div>
+                                <p className="text-2xl font-bold">156</p>
+                                <p className="text-sm text-gray-600">Responses</p>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                        <Card>
+                          <CardContent className="p-4">
+                            <div className="flex items-center gap-2">
+                              <TrendingUp className="w-8 h-8 text-orange-600" />
+                              <div>
+                                <p className="text-2xl font-bold">$0.035</p>
+                                <p className="text-sm text-gray-600">Cost per SMS</p>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </div>
+
+                      {/* SMS Settings */}
+                      <Card>
+                        <CardHeader>
+                          <CardTitle>SMS Integration Settings</CardTitle>
+                          <CardDescription>Configure your SMS service provider and messaging preferences</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                              <Label htmlFor="sms-provider">SMS Provider</Label>
+                              <Select defaultValue="twilio">
+                                <SelectTrigger>
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="twilio">Twilio</SelectItem>
+                                  <SelectItem value="aws-sns">AWS SNS</SelectItem>
+                                  <SelectItem value="messagebird">MessageBird</SelectItem>
+                                  <SelectItem value="nexmo">Nexmo</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <div>
+                              <Label htmlFor="sms-sender">Sender ID</Label>
+                              <Input id="sms-sender" defaultValue="YourSalon" placeholder="Your sender name" />
+                            </div>
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label>API Configuration</Label>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <Input placeholder="API Key" type="password" />
+                              <Input placeholder="API Secret" type="password" />
+                            </div>
+                          </div>
+
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <Label htmlFor="sms-enabled">Enable SMS Integration</Label>
+                              <p className="text-sm text-gray-600">Allow sending SMS messages to customers</p>
+                            </div>
+                            <Checkbox id="sms-enabled" defaultChecked />
+                          </div>
+
+                          <Button className="w-full">
+                            <Check className="w-4 h-4 mr-2" />
+                            Test SMS Connection
+                          </Button>
+                        </CardContent>
+                      </Card>
+
+                      {/* SMS Templates */}
+                      <Card>
+                        <CardHeader>
+                          <CardTitle>SMS Templates</CardTitle>
+                          <CardDescription>Manage your SMS message templates</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="space-y-4">
+                            {[
+                              { name: 'Appointment Reminder', template: 'Hi {name}, reminder: You have an appointment tomorrow at {time}. See you soon!' },
+                              { name: 'Booking Confirmation', template: 'Hi {name}, your booking for {service} on {date} at {time} is confirmed. Thank you!' },
+                              { name: 'Follow-up', template: 'Hi {name}, we hope you enjoyed your visit! Come back soon for 15% off your next service.' },
+                              { name: 'Birthday Offer', template: 'Happy Birthday {name}! Enjoy 25% off any service as our gift to you today.' }
+                            ].map((template, index) => (
+                              <div key={index} className="border rounded-lg p-4">
+                                <div className="flex items-center justify-between mb-2">
+                                  <h4 className="font-medium">{template.name}</h4>
+                                  <Button variant="outline" size="sm">
+                                    <Edit className="w-4 h-4 mr-2" />
+                                    Edit
+                                  </Button>
+                                </div>
+                                <p className="text-sm text-gray-600">{template.template}</p>
+                              </div>
+                            ))}
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      {/* Recent SMS Activity */}
+                      <Card>
+                        <CardHeader>
+                          <CardTitle>Recent SMS Activity</CardTitle>
+                          <CardDescription>View your latest SMS communications</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="space-y-4">
+                            {[
+                              { to: '+1234567890', message: 'Appointment reminder sent', status: 'delivered', time: '2 mins ago' },
+                              { to: '+1234567891', message: 'Booking confirmation sent', status: 'delivered', time: '15 mins ago' },
+                              { to: '+1234567892', message: 'Follow-up message sent', status: 'delivered', time: '1 hour ago' },
+                              { to: '+1234567893', message: 'Birthday offer sent', status: 'delivered', time: '2 hours ago' }
+                            ].map((sms, index) => (
+                              <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
+                                <div>
+                                  <p className="font-medium">{sms.to}</p>
+                                  <p className="text-sm text-gray-600">{sms.message}</p>
+                                </div>
+                                <div className="text-right">
+                                  <Badge variant={sms.status === 'delivered' ? 'default' : 'secondary'}>
+                                    {sms.status}
+                                  </Badge>
+                                  <p className="text-xs text-gray-500 mt-1">{sms.time}</p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  </div>
+                </TabsContent>
+              </PermissionProtectedSection>
+
+              {/* WhatsApp Integration Tab */}
+              <PermissionProtectedSection requiredPermissions={['messages.view']}>
+                <TabsContent value="whatsapp" className="flex-1 m-0 overflow-hidden">
+                  <div className="h-full overflow-auto p-6">
+                    <div className="grid gap-6">
+                      {/* WhatsApp Stats */}
+                      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <Card>
+                          <CardContent className="p-4">
+                            <div className="flex items-center gap-2">
+                              <MessageSquare className="w-8 h-8 text-green-600" />
+                              <div>
+                                <p className="text-2xl font-bold">892</p>
+                                <p className="text-sm text-gray-600">Messages Sent Today</p>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                        <Card>
+                          <CardContent className="p-4">
+                            <div className="flex items-center gap-2">
+                              <CheckCheck className="w-8 h-8 text-blue-600" />
+                              <div>
+                                <p className="text-2xl font-bold">97.2%</p>
+                                <p className="text-sm text-gray-600">Read Rate</p>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                        <Card>
+                          <CardContent className="p-4">
+                            <div className="flex items-center gap-2">
+                              <MessageCircle className="w-8 h-8 text-purple-600" />
+                              <div>
+                                <p className="text-2xl font-bold">234</p>
+                                <p className="text-sm text-gray-600">Responses</p>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                        <Card>
+                          <CardContent className="p-4">
+                            <div className="flex items-center gap-2">
+                              <Smartphone className="w-8 h-8 text-orange-600" />
+                              <div>
+                                <p className="text-2xl font-bold">1,456</p>
+                                <p className="text-sm text-gray-600">Active Chats</p>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </div>
+
+                      {/* WhatsApp Business API Settings */}
+                      <Card>
+                        <CardHeader>
+                          <CardTitle>WhatsApp Business API</CardTitle>
+                          <CardDescription>Configure your WhatsApp Business integration</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                              <Label htmlFor="wa-phone">Business Phone Number</Label>
+                              <Input id="wa-phone" defaultValue="+1234567890" placeholder="Your WhatsApp business number" />
+                            </div>
+                            <div>
+                              <Label htmlFor="wa-display">Display Name</Label>
+                              <Input id="wa-display" defaultValue="Your Salon" placeholder="Your business display name" />
+                            </div>
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label>API Configuration</Label>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                              <Input placeholder="Access Token" type="password" />
+                              <Input placeholder="App Secret" type="password" />
+                              <Input placeholder="Phone Number ID" />
+                            </div>
+                          </div>
+
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <Label htmlFor="wa-enabled">Enable WhatsApp Integration</Label>
+                              <p className="text-sm text-gray-600">Allow WhatsApp messaging to customers</p>
+                            </div>
+                            <Checkbox id="wa-enabled" defaultChecked />
+                          </div>
+
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <Label htmlFor="wa-templates">Message Templates</Label>
+                              <p className="text-sm text-gray-600">Use approved WhatsApp templates for marketing</p>
+                            </div>
+                            <Checkbox id="wa-templates" defaultChecked />
+                          </div>
+
+                          <Button className="w-full">
+                            <Check className="w-4 h-4 mr-2" />
+                            Test WhatsApp Connection
+                          </Button>
+                        </CardContent>
+                      </Card>
+
+                      {/* WhatsApp Templates */}
+                      <Card>
+                        <CardHeader>
+                          <CardTitle>WhatsApp Templates</CardTitle>
+                          <CardDescription>Manage your approved WhatsApp message templates</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="space-y-4">
+                            {[
+                              { name: 'Appointment Reminder', template: 'Hi {name}! 📅 Reminder: You have an appointment tomorrow at {time}. We\'re excited to see you!', status: 'approved' },
+                              { name: 'Booking Confirmation', template: 'Hi {name}! ✅ Your booking for {service} on {date} at {time} is confirmed. Thank you!', status: 'approved' },
+                              { name: 'Special Offer', template: 'Hi {name}! 🎉 Special offer: Get 20% off your next visit! Book now and save.', status: 'pending' },
+                              { name: 'Happy Birthday', template: 'Happy Birthday {name}! 🎂 Enjoy 25% off any service today as our birthday gift to you!', status: 'approved' }
+                            ].map((template, index) => (
+                              <div key={index} className="border rounded-lg p-4">
+                                <div className="flex items-center justify-between mb-2">
+                                  <div className="flex items-center gap-2">
+                                    <h4 className="font-medium">{template.name}</h4>
+                                    <Badge variant={template.status === 'approved' ? 'default' : 'secondary'}>
+                                      {template.status}
+                                    </Badge>
+                                  </div>
+                                  <Button variant="outline" size="sm">
+                                    <Edit className="w-4 h-4 mr-2" />
+                                    Edit
+                                  </Button>
+                                </div>
+                                <p className="text-sm text-gray-600">{template.template}</p>
+                              </div>
+                            ))}
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      {/* WhatsApp Chat Preview */}
+                      <Card>
+                        <CardHeader>
+                          <CardTitle>Active WhatsApp Chats</CardTitle>
+                          <CardDescription>Monitor your WhatsApp conversations</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="space-y-4">
+                            {[
+                              { contact: '+1234567890', name: 'John Doe', lastMessage: 'Thank you for the great service!', time: '5 mins ago', unread: 1 },
+                              { contact: '+1234567891', name: 'Jane Smith', lastMessage: 'When is my next appointment?', time: '12 mins ago', unread: 0 },
+                              { contact: '+1234567892', name: 'Mike Johnson', lastMessage: 'See you tomorrow!', time: '1 hour ago', unread: 0 },
+                              { contact: '+1234567893', name: 'Sarah Wilson', lastMessage: 'Thanks for the birthday discount!', time: '2 hours ago', unread: 0 }
+                            ].map((chat, index) => (
+                              <div key={index} className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 cursor-pointer">
+                                <div className="flex items-center gap-3">
+                                  <Avatar className="w-10 h-10">
+                                    <AvatarFallback>{chat.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                                  </Avatar>
+                                  <div>
+                                    <p className="font-medium">{chat.name}</p>
+                                    <p className="text-sm text-gray-600 truncate max-w-xs">{chat.lastMessage}</p>
+                                  </div>
+                                </div>
+                                <div className="text-right">
+                                  <p className="text-xs text-gray-500">{chat.time}</p>
+                                  {chat.unread > 0 && (
+                                    <Badge variant="destructive" className="mt-1">
+                                      {chat.unread}
+                                    </Badge>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  </div>
+                </TabsContent>
               </PermissionProtectedSection>
             </Tabs>
           </div>

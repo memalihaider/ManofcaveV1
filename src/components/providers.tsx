@@ -1,11 +1,14 @@
 'use client';
 
 import { AuthProvider } from '@/contexts/AuthContext';
+import { BookingProvider } from '@/contexts/BookingContext';
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <AuthProvider>
-      {children}
+      <BookingProvider>
+        {children}
+      </BookingProvider>
     </AuthProvider>
   );
 }

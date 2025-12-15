@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Building, MapPin, Phone, Users, DollarSign, TrendingUp, Plus, Search, Filter, Star } from "lucide-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -203,6 +204,49 @@ export default function SuperAdminBranches() {
     }
   ];
 
+  const [selectedBranches, setSelectedBranches] = useState<number[]>([]);
+  const [showBulkActions, setShowBulkActions] = useState(false);
+
+  const handleSelectBranch = (branchId: number, checked: boolean) => {
+    if (checked) {
+      setSelectedBranches(prev => [...prev, branchId]);
+    } else {
+      setSelectedBranches(prev => prev.filter(id => id !== branchId));
+    }
+  };
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedBranches(filteredBranches.map(branch => branch.id));
+    } else {
+      setSelectedBranches([]);
+    }
+  };
+
+  const handleBulkAction = (action: string) => {
+    const selectedBranchNames = branches
+      .filter(branch => selectedBranches.includes(branch.id))
+      .map(branch => branch.name);
+
+    switch (action) {
+      case 'activate':
+        alert(`Activated branches: ${selectedBranchNames.join(', ')}`);
+        break;
+      case 'deactivate':
+        alert(`Deactivated branches: ${selectedBranchNames.join(', ')}`);
+        break;
+      case 'reset_passwords':
+        alert(`Reset passwords for branches: ${selectedBranchNames.join(', ')}`);
+        break;
+      case 'export_data':
+        alert(`Exported data for branches: ${selectedBranchNames.join(', ')}`);
+        break;
+      default:
+        break;
+    }
+    setSelectedBranches([]);
+  };
+
   const filteredBranches = branches.filter(branch => {
     const matchesSearch = branch.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          branch.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -240,7 +284,7 @@ export default function SuperAdminBranches() {
         {/* Main Content */}
         <div className={cn(
           "flex-1 flex flex-col transition-all duration-300 ease-in-out",
-          sidebarOpen ? "lg:ml-64" : "lg:ml-0"
+          sidebarOpen ? "lg:ml-0" : "lg:ml-0"
         )}>
           {/* Header */}
           <header className="bg-white shadow-sm border-b">
@@ -335,6 +379,13 @@ export default function SuperAdminBranches() {
               <Card className="mb-6">
                 <CardContent className="pt-6">
                   <div className="flex flex-col sm:flex-row gap-4">
+                    <div className="flex items-center gap-2">
+                      <Checkbox
+                        checked={selectedBranches.length === filteredBranches.length && filteredBranches.length > 0}
+                        onCheckedChange={handleSelectAll}
+                      />
+                      <span className="text-sm font-medium">Select All</span>
+                    </div>
                     <div className="flex-1">
                       <div className="relative">
                         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
@@ -360,11 +411,61 @@ export default function SuperAdminBranches() {
                 </CardContent>
               </Card>
 
+              {/* Bulk Actions */}
+              {selectedBranches.length > 0 && (
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium">
+                          {selectedBranches.length} branch{selectedBranches.length > 1 ? 'es' : ''} selected
+                        </span>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleBulkAction('activate')}
+                        >
+                          Activate
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleBulkAction('deactivate')}
+                        >
+                          Deactivate
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleBulkAction('reset_passwords')}
+                        >
+                          Reset Passwords
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleBulkAction('export_data')}
+                        >
+                          Export Data
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
               {/* Branches Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredBranches.map((branch) => (
                   <Card key={branch.id} className="hover:shadow-lg transition-shadow">
                     <div className="aspect-video bg-gray-200 rounded-t-lg overflow-hidden relative">
+                      <Checkbox
+                        checked={selectedBranches.includes(branch.id)}
+                        onCheckedChange={(checked) => handleSelectBranch(branch.id, checked as boolean)}
+                        className="absolute top-2 left-2 z-10 bg-white/80 backdrop-blur-sm"
+                      />
                       <img
                         src={branch.image}
                         alt={branch.name}

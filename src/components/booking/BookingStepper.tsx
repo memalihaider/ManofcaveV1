@@ -25,6 +25,17 @@ const services = [
   { id: "express-service", name: "Express Service", price: 20, duration: "15 min" },
 ];
 
+const products = [
+  { id: "premium-hair-pomade", name: "Premium Hair Pomade", price: 18, category: "Styling", description: "Professional-grade styling product for all hair types" },
+  { id: "beard-oil-balm-kit", name: "Beard Oil & Balm Kit", price: 32, category: "Beard Care", description: "Complete beard care set with natural oils" },
+  { id: "after-shave-soother", name: "After Shave Soother", price: 22, category: "Skincare", description: "Calming lotion for sensitive skin after shaving" },
+  { id: "hair-growth-serum", name: "Hair Growth Serum", price: 45, category: "Treatment", description: "Advanced formula to promote healthy hair growth" },
+  { id: "scalp-scrub", name: "Scalp Scrub", price: 28, category: "Treatment", description: "Exfoliating treatment for healthy scalp" },
+  { id: "styling-wax", name: "Professional Styling Wax", price: 16, category: "Styling", description: "Strong hold wax for textured styles" },
+  { id: "beard-trimmer", name: "Precision Beard Trimmer", price: 35, category: "Tools", description: "Professional trimmer with multiple guards" },
+  { id: "shaving-cream", name: "Luxury Shaving Cream", price: 24, category: "Skincare", description: "Rich, moisturizing shaving cream" },
+];
+
 const barbers = [
   { id: "any", name: "Any Available Barber", rating: 4.8, specialties: ["All Services"] },
   { id: "mike", name: "Mike Johnson", rating: 4.9, specialties: ["Haircuts", "Fades"] },
@@ -50,12 +61,17 @@ export function BookingStepper({ selectedServiceId }: { selectedServiceId?: stri
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [bookingResult, setBookingResult] = useState<any>(null);
 
-  // Pre-select service if provided
+  // Pre-select service if provided and skip to barber selection
   useEffect(() => {
     if (selectedServiceId && !bookingData.service) {
       updateBookingData("service", selectedServiceId);
+      updateBookingData("bookingType", "services");
+      // Skip to barber selection if service is pre-selected
+      if (currentStep === 1) {
+        nextStep();
+      }
     }
-  }, [selectedServiceId, bookingData.service, updateBookingData]);
+  }, [selectedServiceId, bookingData.service, updateBookingData, currentStep, nextStep]);
 
   const handleBookingSubmit = async () => {
     setIsSubmitting(true);
@@ -83,18 +99,40 @@ export function BookingStepper({ selectedServiceId }: { selectedServiceId?: stri
     }
   };
 
-  const steps = [
-    { id: 1, title: "Service", icon: Scissors },
-    { id: 2, title: "Barber", icon: User },
-    { id: 3, title: "Schedule", icon: Calendar },
-    { id: 4, title: "Details", icon: CheckCircle },
-    { id: 5, title: "Payment", icon: CreditCard },
-  ];
+  const isServicePreSelected = !!selectedServiceId;
+
+  // Dynamic steps based on booking type
+  const getSteps = () => {
+    const baseSteps = [];
+
+    if (!isServicePreSelected) {
+      baseSteps.push({ id: 1, title: "Type", icon: Scissors });
+    }
+
+    if (bookingData.bookingType === 'services' || bookingData.bookingType === 'both') {
+      if (!isServicePreSelected) {
+        baseSteps.push({ id: baseSteps.length + 1, title: "Service", icon: Scissors });
+      }
+      baseSteps.push({ id: baseSteps.length + 1, title: "Barber", icon: User });
+      baseSteps.push({ id: baseSteps.length + 1, title: "Schedule", icon: Calendar });
+    }
+
+    if (bookingData.bookingType === 'products' || bookingData.bookingType === 'both') {
+      baseSteps.push({ id: baseSteps.length + 1, title: "Products", icon: Scissors });
+    }
+
+    baseSteps.push({ id: baseSteps.length + 1, title: "Details", icon: CheckCircle });
+    baseSteps.push({ id: baseSteps.length + 1, title: "Payment", icon: CreditCard });
+
+    return baseSteps;
+  };
+
+  const steps = getSteps();
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="max-w-4xl mx-auto h-full flex flex-col">
       {/* Progress Indicator */}
-      <div className="flex justify-between mb-8">
+      <div className="flex justify-between mb-8 flex-shrink-0">
         {steps.map((step) => (
           <div key={step.id} className="flex flex-col items-center">
             <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-2 ${
@@ -113,274 +151,301 @@ export function BookingStepper({ selectedServiceId }: { selectedServiceId?: stri
         ))}
       </div>
 
-      {/* Step Content */}
-      <Card className="min-h-[500px]">
-        <CardHeader>
-          <CardTitle className="text-2xl text-primary">
-            {steps[currentStep - 1].title}
-          </CardTitle>
-          <CardDescription>
-            {currentStep === 1 && "Choose the service you need"}
-            {currentStep === 2 && "Select your preferred barber"}
-            {currentStep === 3 && "Pick your preferred date and time"}
-            {currentStep === 4 && "Enter your contact information"}
-            {currentStep === 5 && "Choose your payment method"}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {/* Step 1: Service Selection */}
-          {currentStep === 1 && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {services.map((service) => (
-                <Card
-                  key={service.id}
-                  className={`cursor-pointer transition-all ${
-                    bookingData.service === service.id
-                      ? "border-secondary bg-secondary/5"
-                      : "hover:border-secondary/50"
-                  }`}
-                  onClick={() => updateBookingData("service", service.id)}
-                >
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-lg">{service.name}</CardTitle>
-                    <CardDescription>${service.price} • {service.duration}</CardDescription>
-                  </CardHeader>
-                </Card>
-              ))}
-            </div>
-          )}
-
-          {/* Step 2: Barber Selection */}
-          {currentStep === 2 && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {barbers.map((barber) => (
-                <Card
-                  key={barber.id}
-                  className={`cursor-pointer transition-all ${
-                    bookingData.barber === barber.id
-                      ? "border-secondary bg-secondary/5"
-                      : "hover:border-secondary/50"
-                  }`}
-                  onClick={() => updateBookingData("barber", barber.id)}
-                >
-                  <CardHeader>
-                    <div className="w-16 h-16 bg-secondary rounded-full flex items-center justify-center mb-3">
-                      <User className="w-8 h-8 text-primary" />
+      {/* Step Content - Scrollable */}
+      <div className="flex-1 overflow-y-auto mb-8">
+        <Card className="min-h-[600px]">
+          <CardHeader>
+            <CardTitle className="text-2xl text-primary">
+              {steps[currentStep - 1].title}
+            </CardTitle>
+            <CardDescription>
+              {(() => {
+                const currentStepTitle = steps[currentStep - 1]?.title;
+                switch (currentStepTitle) {
+                  case "Type":
+                    return "Choose what you'd like to book";
+                  case "Service":
+                    return "Select the service you need";
+                  case "Barber":
+                    return "Choose your preferred barber";
+                  case "Schedule":
+                    return "Pick your preferred date and time";
+                  case "Products":
+                    return "Select products to purchase";
+                  case "Details":
+                    return "Enter your contact information";
+                  case "Payment":
+                    return "Choose your payment method";
+                  default:
+                    return "";
+                }
+              })()}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {(() => {
+              const currentStepTitle = steps[currentStep - 1]?.title;
+              switch (currentStepTitle) {
+                case "Type":
+                  return (
+                    <div className="space-y-6">
+                      <RadioGroup
+                        value={bookingData.bookingType || ""}
+                        onValueChange={(value) => updateBookingData("bookingType", value)}
+                        className="space-y-4"
+                      >
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="services" id="services" />
+                          <Label htmlFor="services" className="flex-1 cursor-pointer">
+                            <div className="p-4 border rounded-lg hover:bg-gray-50">
+                              <h3 className="font-semibold">Services Only</h3>
+                              <p className="text-sm text-gray-600">Book a barber service appointment</p>
+                            </div>
+                          </Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="products" id="products" />
+                          <Label htmlFor="products" className="flex-1 cursor-pointer">
+                            <div className="p-4 border rounded-lg hover:bg-gray-50">
+                              <h3 className="font-semibold">Products Only</h3>
+                              <p className="text-sm text-gray-600">Purchase grooming products</p>
+                            </div>
+                          </Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="both" id="both" />
+                          <Label htmlFor="both" className="flex-1 cursor-pointer">
+                            <div className="p-4 border rounded-lg hover:bg-gray-50">
+                              <h3 className="font-semibold">Services & Products</h3>
+                              <p className="text-sm text-gray-600">Book a service and purchase products together</p>
+                            </div>
+                          </Label>
+                        </div>
+                      </RadioGroup>
                     </div>
-                    <CardTitle className="text-lg">{barber.name}</CardTitle>
-                    <CardDescription>⭐ {barber.rating} • {barber.specialties.join(", ")}</CardDescription>
-                  </CardHeader>
-                </Card>
-              ))}
-            </div>
-          )}
-
-          {/* Step 3: Schedule Selection */}
-          {currentStep === 3 && (
-            <div className="space-y-6">
-              <div>
-                <Label htmlFor="date">Select Date</Label>
-                <Input
-                  id="date"
-                  type="date"
-                  value={bookingData.date}
-                  onChange={(e) => updateBookingData("date", e.target.value)}
-                  className="mt-2"
-                  min={new Date().toISOString().split('T')[0]}
-                />
-              </div>
-              <div>
-                <Label>Available Times</Label>
-                <div className="grid grid-cols-3 md:grid-cols-6 gap-2 mt-2">
-                  {timeSlots.map((time) => (
-                    <Button
-                      key={time}
-                      variant={bookingData.time === time ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => updateBookingData("time", time)}
-                      className={bookingData.time === time ? "bg-secondary text-primary" : ""}
-                    >
-                      {time}
-                    </Button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Step 4: Customer Information */}
-          {currentStep === 4 && (
-            <div className="max-w-2xl mx-auto space-y-6">
-              <div>
-                <h3 className="font-semibold text-primary mb-4 text-center">Customer Information</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="name">Full Name *</Label>
-                    <Input
-                      id="name"
-                      value={bookingData.name}
-                      onChange={(e) => updateBookingData("name", e.target.value)}
-                      placeholder="Enter your full name"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email *</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      value={bookingData.email}
-                      onChange={(e) => updateBookingData("email", e.target.value)}
-                      placeholder="Enter your email"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="phone">Phone Number *</Label>
-                    <Input
-                      id="phone"
-                      type="tel"
-                      value={bookingData.phone}
-                      onChange={(e) => updateBookingData("phone", e.target.value)}
-                      placeholder="Enter your phone number"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="notes">Special Requests</Label>
-                    <Input
-                      id="notes"
-                      value={bookingData.notes}
-                      onChange={(e) => updateBookingData("notes", e.target.value)}
-                      placeholder="Any special requests"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Step 5: Payment */}
-          {currentStep === 5 && (
-            <div className="max-w-4xl mx-auto space-y-6">
-              {/* Booking Summary */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Booking Summary</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-3">
-                      <h4 className="font-semibold text-primary">Service Details</h4>
-                      <div className="space-y-2 text-sm">
-                        <p><span className="font-medium">Service:</span> {services.find(s => s.id === bookingData.service)?.name}</p>
-                        <p><span className="font-medium">Barber:</span> {barbers.find(b => b.id === bookingData.barber)?.name}</p>
-                        <p><span className="font-medium">Date:</span> {bookingData.date}</p>
-                        <p><span className="font-medium">Time:</span> {bookingData.time}</p>
-                        <p><span className="font-medium">Duration:</span> {services.find(s => s.id === bookingData.service)?.duration}</p>
+                  );
+                case "Service":
+                  return (
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {services.map((service) => (
+                          <div
+                            key={service.id}
+                            className={`p-4 border rounded-lg cursor-pointer transition-colors ${
+                              bookingData.service === service.id
+                                ? "border-secondary bg-secondary/10"
+                                : "border-gray-200 hover:border-secondary"
+                            }`}
+                            onClick={() => updateBookingData("service", service.id)}
+                          >
+                            <h3 className="font-semibold">{service.name}</h3>
+                            <p className="text-sm text-gray-600">{service.duration}</p>
+                            <p className="text-lg font-bold text-secondary">${service.price}</p>
+                          </div>
+                        ))}
                       </div>
                     </div>
-                    <div className="space-y-3">
-                      <h4 className="font-semibold text-primary">Customer Details</h4>
-                      <div className="space-y-2 text-sm">
-                        <p><span className="font-medium">Name:</span> {bookingData.name}</p>
-                        <p><span className="font-medium">Email:</span> {bookingData.email}</p>
-                        <p><span className="font-medium">Phone:</span> {bookingData.phone}</p>
-                        {bookingData.notes && <p><span className="font-medium">Notes:</span> {bookingData.notes}</p>}
+                  );
+                case "Barber":
+                  return (
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {barbers.map((barber) => (
+                          <div
+                            key={barber.id}
+                            className={`p-4 border rounded-lg cursor-pointer transition-colors ${
+                              bookingData.barber === barber.id
+                                ? "border-secondary bg-secondary/10"
+                                : "border-gray-200 hover:border-secondary"
+                            }`}
+                            onClick={() => updateBookingData("barber", barber.id)}
+                          >
+                            <h3 className="font-semibold">{barber.name}</h3>
+                            <p className="text-sm text-gray-600">⭐ {barber.rating}</p>
+                            <p className="text-sm text-gray-500">{barber.specialties.join(", ")}</p>
+                          </div>
+                        ))}
                       </div>
                     </div>
-                  </div>
-                  <Separator className="my-4" />
-                  <div className="flex justify-between items-center">
-                    <span className="text-lg font-semibold">Total:</span>
-                    <span className="text-xl font-bold text-secondary">
-                      ${services.find(s => s.id === bookingData.service)?.price}
-                    </span>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Payment Method Selection */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Payment Method</CardTitle>
-                  <CardDescription>Choose how you'd like to pay for your booking</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <RadioGroup
-                    value={bookingData.paymentMethod}
-                    onValueChange={(value) => updateBookingData("paymentMethod", value)}
-                    className="space-y-4"
-                  >
-                    <div className="flex items-center space-x-3 p-4 border rounded-lg hover:bg-gray-50">
-                      <RadioGroupItem value="cod" id="cod-booking" />
-                      <Label htmlFor="cod-booking" className="flex items-center gap-3 cursor-pointer flex-1">
-                        <div className="w-8 h-8 bg-green-600 rounded flex items-center justify-center">
-                          <span className="text-white text-xs">💵</span>
-                        </div>
-                        <div>
-                          <div className="font-medium">Cash on Arrival</div>
-                          <div className="text-sm text-gray-500">Pay cash when you arrive at the salon</div>
-                        </div>
-                      </Label>
-                    </div>
-
-                    <div className="flex items-center space-x-3 p-4 border rounded-lg hover:bg-gray-50">
-                      <RadioGroupItem value="card" id="card-booking" />
-                      <Label htmlFor="card-booking" className="flex items-center gap-3 cursor-pointer flex-1">
-                        <div className="w-8 h-8 bg-purple-600 rounded flex items-center justify-center">
-                          <span className="text-white text-xs">💳</span>
-                        </div>
-                        <div>
-                          <div className="font-medium">Credit/Debit Card</div>
-                          <div className="text-sm text-gray-500">Pay with card at the salon</div>
-                        </div>
-                      </Label>
-                    </div>
-                  </RadioGroup>
-                </CardContent>
-              </Card>
-
-              {/* Payment Processing */}
-              {bookingData.paymentMethod === 'cod' && (
-                <Card>
-                  <CardContent className="pt-6">
-                    <div className="text-center space-y-4">
-                      <div className="w-16 h-16 mx-auto bg-green-100 rounded-full flex items-center justify-center">
-                        <span className="text-2xl">💵</span>
+                  );
+                case "Schedule":
+                  return (
+                    <div className="space-y-6">
+                      <div>
+                        <Label htmlFor="date">Select Date</Label>
+                        <Input
+                          id="date"
+                          type="date"
+                          value={bookingData.date || ""}
+                          onChange={(e) => updateBookingData("date", e.target.value)}
+                          min={new Date().toISOString().split('T')[0]}
+                          className="mt-2"
+                        />
                       </div>
                       <div>
-                        <h3 className="font-semibold text-green-600">Cash on Arrival Selected</h3>
-                        <p className="text-sm text-gray-600 mt-2">
-                          You can pay cash when you arrive at the salon for your appointment.
-                        </p>
+                        <Label>Select Time</Label>
+                        <div className="grid grid-cols-3 gap-2 mt-2">
+                          {timeSlots.map((time) => (
+                            <Button
+                              key={time}
+                              variant={bookingData.time === time ? "default" : "outline"}
+                              size="sm"
+                              onClick={() => updateBookingData("time", time)}
+                              className={bookingData.time === time ? "bg-secondary text-primary" : ""}
+                            >
+                              {time}
+                            </Button>
+                          ))}
+                        </div>
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
-              )}
-
-              {bookingData.paymentMethod === 'card' && (
-                <Card>
-                  <CardContent className="pt-6">
-                    <div className="text-center space-y-4">
-                      <div className="w-16 h-16 mx-auto bg-purple-100 rounded-full flex items-center justify-center">
-                        <span className="text-2xl">💳</span>
+                  );
+                case "Products":
+                  return (
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {products.map((product) => (
+                          <div
+                            key={product.id}
+                            className={`p-4 border rounded-lg cursor-pointer transition-colors ${
+                              bookingData.products?.includes(product.id)
+                                ? "border-secondary bg-secondary/10"
+                                : "border-gray-200 hover:border-secondary"
+                            }`}
+                            onClick={() => {
+                              const currentProducts = bookingData.products || [];
+                              const newProducts = currentProducts.includes(product.id)
+                                ? currentProducts.filter(id => id !== product.id)
+                                : [...currentProducts, product.id];
+                              updateBookingData("products", newProducts);
+                            }}
+                          >
+                            <h3 className="font-semibold">{product.name}</h3>
+                            <p className="text-sm text-gray-600">{product.category}</p>
+                            <p className="text-sm text-gray-500">{product.description}</p>
+                            <p className="text-lg font-bold text-secondary">${product.price}</p>
+                          </div>
+                        ))}
                       </div>
-                      <div>
-                        <h3 className="font-semibold text-purple-600">Card Payment at Salon</h3>
-                        <p className="text-sm text-gray-600 mt-2">
-                          You can pay with credit/debit card when you arrive at the salon.
-                        </p>
+                      {bookingData.products && bookingData.products.length > 0 && (
+                        <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+                          <h4 className="font-semibold mb-2">Selected Products:</h4>
+                          <ul className="space-y-1">
+                            {bookingData.products.map(productId => {
+                              const product = products.find(p => p.id === productId);
+                              return product ? (
+                                <li key={productId} className="text-sm">
+                                  {product.name} - ${product.price}
+                                </li>
+                              ) : null;
+                            })}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  );
+                case "Details":
+                  return (
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="name">Full Name</Label>
+                          <Input
+                            id="name"
+                            value={bookingData.name || ""}
+                            onChange={(e) => updateBookingData("name", e.target.value)}
+                            placeholder="Enter your full name"
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="email">Email</Label>
+                          <Input
+                            id="email"
+                            type="email"
+                            value={bookingData.email || ""}
+                            onChange={(e) => updateBookingData("email", e.target.value)}
+                            placeholder="Enter your email"
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="phone">Phone Number</Label>
+                          <Input
+                            id="phone"
+                            value={bookingData.phone || ""}
+                            onChange={(e) => updateBookingData("phone", e.target.value)}
+                            placeholder="Enter your phone number"
+                          />
+                        </div>
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
-              )}
-            </div>
-          )}
-        </CardContent>
+                  );
+                case "Payment":
+                  return (
+                    <div className="space-y-6">
+                      <RadioGroup
+                        value={bookingData.paymentMethod || ""}
+                        onValueChange={(value) => updateBookingData("paymentMethod", value)}
+                        className="space-y-4"
+                      >
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="card" id="card" />
+                          <Label htmlFor="card" className="flex-1 cursor-pointer">
+                            <div className="p-4 border rounded-lg hover:bg-gray-50">
+                              <h3 className="font-semibold">Credit/Debit Card</h3>
+                              <p className="text-sm text-gray-600">Pay securely with your card</p>
+                            </div>
+                          </Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="cash" id="cash" />
+                          <Label htmlFor="cash" className="flex-1 cursor-pointer">
+                            <div className="p-4 border rounded-lg hover:bg-gray-50">
+                              <h3 className="font-semibold">Cash</h3>
+                              <p className="text-sm text-gray-600">Pay in person at the salon</p>
+                            </div>
+                          </Label>
+                        </div>
+                      </RadioGroup>
+                      {bookingData.bookingType && (
+                        <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+                          <h4 className="font-semibold mb-4">Booking Summary</h4>
+                          <div className="space-y-2">
+                            {bookingData.bookingType === 'services' || bookingData.bookingType === 'both' ? (
+                              <>
+                                <p><strong>Service:</strong> {services.find(s => s.id === bookingData.service)?.name}</p>
+                                <p><strong>Barber:</strong> {barbers.find(b => b.id === bookingData.barber)?.name}</p>
+                                <p><strong>Date:</strong> {bookingData.date}</p>
+                                <p><strong>Time:</strong> {bookingData.time}</p>
+                              </>
+                            ) : null}
+                            {bookingData.bookingType === 'products' || bookingData.bookingType === 'both' ? (
+                              <div>
+                                <p><strong>Products:</strong></p>
+                                <ul className="ml-4">
+                                  {bookingData.products?.map(productId => {
+                                    const product = products.find(p => p.id === productId);
+                                    return product ? (
+                                      <li key={productId}>{product.name} - ${product.price}</li>
+                                    ) : null;
+                                  })}
+                                </ul>
+                              </div>
+                            ) : null}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                default:
+                  return <div>Step content not available</div>;
+              }
+            })()}
+          </CardContent>
       </Card>
+      </div>
 
-      {/* Navigation Buttons */}
-      <div className="flex justify-between mt-8">
+      {/* Navigation Buttons - Fixed at bottom */}
+      <div className="flex justify-between mt-8 flex-shrink-0">
         <Button
           variant="outline"
           onClick={prevStep}
@@ -389,18 +454,31 @@ export function BookingStepper({ selectedServiceId }: { selectedServiceId?: stri
           Previous
         </Button>
         <Button
-          onClick={currentStep === 5 ? handleBookingSubmit : nextStep}
-          disabled={
-            isSubmitting ||
-            (currentStep === 1 && !bookingData.service) ||
-            (currentStep === 2 && !bookingData.barber) ||
-            (currentStep === 3 && (!bookingData.date || !bookingData.time)) ||
-            (currentStep === 4 && (!bookingData.name || !bookingData.email || !bookingData.phone)) ||
-            (currentStep === 5 && !bookingData.paymentMethod)
-          }
+          onClick={currentStep === steps.length ? handleBookingSubmit : nextStep}
+          disabled={isSubmitting || (() => {
+            const currentStepTitle = steps[currentStep - 1]?.title;
+            switch (currentStepTitle) {
+              case "Type":
+                return !bookingData.bookingType;
+              case "Service":
+                return !bookingData.service;
+              case "Barber":
+                return !bookingData.barber;
+              case "Schedule":
+                return !bookingData.date || !bookingData.time;
+              case "Products":
+                return bookingData.bookingType === 'products' && bookingData.products.length === 0;
+              case "Details":
+                return !bookingData.name || !bookingData.email || !bookingData.phone;
+              case "Payment":
+                return !bookingData.paymentMethod;
+              default:
+                return false;
+            }
+          })()}
           className="bg-secondary hover:bg-secondary/90 text-primary"
         >
-          {isSubmitting ? "Processing..." : currentStep === 5 ? "Complete Booking" : "Next"}
+          {isSubmitting ? "Processing..." : currentStep === steps.length ? "Complete Booking" : "Next"}
         </Button>
       </div>
     </div>

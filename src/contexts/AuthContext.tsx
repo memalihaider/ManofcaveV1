@@ -7,6 +7,8 @@ interface User {
   email: string;
   role: Role;
   branchId?: string;
+  fullName?: string;
+  phone?: string;
 }
 
 interface AuthContextType {
@@ -59,6 +61,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       { email: 'super@premiumcuts.com', password: 'super123', role: 'super_admin' as Role },
       { email: 'manager@branch1.com', password: 'manager456', role: 'manager' as Role, branchId: '1' },
       { email: 'staff@branch1.com', password: 'staff789', role: 'staff' as Role, branchId: '1' },
+      // Customer accounts
+      { email: 'john.doe@email.com', password: 'customer123', role: 'customer' as Role, fullName: 'John Doe', phone: '+1234567890' },
+      { email: 'jane.smith@email.com', password: 'customer456', role: 'customer' as Role, fullName: 'Jane Smith', phone: '+1234567891' },
+      { email: 'mike.johnson@email.com', password: 'customer789', role: 'customer' as Role, fullName: 'Mike Johnson', phone: '+1234567892' },
+      { email: 'sarah.wilson@email.com', password: 'customer101', role: 'customer' as Role, fullName: 'Sarah Wilson', phone: '+1234567893' },
+      { email: 'david.brown@email.com', password: 'customer202', role: 'customer' as Role, fullName: 'David Brown', phone: '+1234567894' },
+      { email: 'emma.davis@email.com', password: 'customer303', role: 'customer' as Role, fullName: 'Emma Davis', phone: '+1234567895' },
     ];
 
     const foundUser = mockUsers.find(u => u.email === email && u.password === password);
@@ -69,6 +78,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         email: foundUser.email,
         role: foundUser.role,
         branchId: foundUser.branchId,
+        fullName: foundUser.fullName,
+        phone: foundUser.phone,
       };
 
       setUser(userData);

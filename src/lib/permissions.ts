@@ -52,6 +52,8 @@ export type Permission =
   | 'payment_methods.edit'
   | 'sms_content.view'
   | 'sms_content.edit'
+  | 'data_import.view'
+  | 'data_import.edit'
   | 'terms.view'
   | 'terms.edit'
 
@@ -69,9 +71,19 @@ export type Permission =
   | 'branches.delete'
   | 'financial.view'
   | 'system_settings.view'
-  | 'system_settings.edit';
+  | 'system_settings.edit'
 
-export type Role = 'branch_admin' | 'super_admin' | 'staff' | 'manager';
+  // Customer Portal
+  | 'customer.profile.view'
+  | 'customer.profile.edit'
+  | 'customer.appointments.view'
+  | 'customer.appointments.create'
+  | 'customer.appointments.cancel'
+  | 'customer.orders.view'
+  | 'customer.services.view'
+  | 'customer.products.view';
+
+export type Role = 'branch_admin' | 'super_admin' | 'staff' | 'manager' | 'customer';
 
 export interface UserPermissions {
   id: string;
@@ -243,6 +255,17 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     'customers.view',
     'messages.view',
     'messages.send',
+  ],
+  customer: [
+    // Customer Portal
+    'customer.profile.view',
+    'customer.profile.edit',
+    'customer.appointments.view',
+    'customer.appointments.create',
+    'customer.appointments.cancel',
+    'customer.orders.view',
+    'customer.services.view',
+    'customer.products.view',
   ],
 };
 

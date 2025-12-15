@@ -107,7 +107,7 @@ export default function AdminProducts() {
       rating: 4.8,
       reviews: 127,
       image: "/api/placeholder/300/200",
-      brand: "Premium Cuts"
+      brand: "Man of Cave"
     },
     {
       id: 2,
@@ -121,7 +121,7 @@ export default function AdminProducts() {
       rating: 4.6,
       reviews: 89,
       image: "/api/placeholder/300/200",
-      brand: "Premium Cuts"
+      brand: "Man of Cave"
     },
     {
       id: 3,
@@ -135,7 +135,7 @@ export default function AdminProducts() {
       rating: 4.7,
       reviews: 156,
       image: "/api/placeholder/300/200",
-      brand: "Premium Cuts"
+      brand: "Man of Cave"
     },
     {
       id: 4,
@@ -149,7 +149,7 @@ export default function AdminProducts() {
       rating: 4.9,
       reviews: 203,
       image: "/api/placeholder/300/200",
-      brand: "Premium Cuts"
+      brand: "Man of Cave"
     },
     {
       id: 5,
@@ -177,7 +177,7 @@ export default function AdminProducts() {
       rating: 4.4,
       reviews: 45,
       image: "/api/placeholder/300/200",
-      brand: "Premium Cuts"
+      brand: "Man of Cave"
     }
   ]);
 

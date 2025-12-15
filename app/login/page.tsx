@@ -42,7 +42,7 @@ export default function LoginPage() {
           <div className="w-16 h-16 bg-secondary rounded-full flex items-center justify-center mx-auto mb-4">
             <Scissors className="w-8 h-8 text-primary" />
           </div>
-          <CardTitle className="text-2xl font-serif text-primary">Premium Cuts Admin</CardTitle>
+          <CardTitle className="text-2xl font-serif text-primary">Man of Cave Admin</CardTitle>
           <CardDescription>Sign in to access the admin panel</CardDescription>
         </CardHeader>
         <CardContent>
@@ -99,7 +99,7 @@ export default function LoginPage() {
             <p className="text-sm text-gray-600 mb-2">Demo Credentials:</p>
             <div className="text-xs text-gray-500 space-y-1">
               <p><strong>Branch Admin:</strong> admin@branch1.com / admin123</p>
-              <p><strong>Super Admin:</strong> super@premiumcuts.com / super123</p>
+              <p><strong>Super Admin:</strong> super@manofcave.com / super123</p>
             </div>
           </div>
         </CardContent>

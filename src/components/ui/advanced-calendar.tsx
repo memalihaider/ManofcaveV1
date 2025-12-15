@@ -14,7 +14,8 @@ interface Appointment {
   id: number;
   customer: string;
   service: string;
-  barber: string;
+  staff: string;
+  staffAvatar?: string;
   date: string;
   time: string;
   duration: string;
@@ -33,20 +34,20 @@ interface AdvancedCalendarProps {
   appointments: Appointment[];
   onAppointmentClick: (appointment: Appointment) => void;
   onStatusChange: (appointmentId: number, newStatus: string) => void;
-  onCreateBooking?: (barber: string, date: string, time: string) => void;
+  onCreateBooking?: (staff: string, date: string, time: string) => void;
 }
 
 export function AdvancedCalendar({ appointments, onAppointmentClick, onStatusChange, onCreateBooking }: AdvancedCalendarProps) {
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [selectedBarber, setSelectedBarber] = useState<string>('all');
+  const [selectedStaff, setSelectedStaff] = useState<string>('all');
   const [timeSlotGap, setTimeSlotGap] = useState(30); // minutes - default to 30 min
-  const [layoutMode, setLayoutMode] = useState<'time-top' | 'employee-top'>('time-top'); // New layout toggle
-  const [businessHours, setBusinessHours] = useState({ start: 9, end: 18 }); // 9 AM to 6 PM
-  const [hiddenHours, setHiddenHours] = useState<number[]>([]); // Hours to hide
+  const [layoutMode, setLayoutMode] = useState<'time-top' | 'employee-top'>('time-top');
+  const [businessHours, setBusinessHours] = useState({ start: 9, end: 18 });
+  const [hiddenHours, setHiddenHours] = useState<number[]>([]);
   const [showSettings, setShowSettings] = useState(false);
 
-  // Get unique barbers from appointments
-  const barbers = Array.from(new Set(appointments.map(apt => apt.barber)));
+  // Get unique staffs from appointments
+  const staffs = Array.from(new Set(appointments.map(apt => apt.staff)));
 
   // Generate time slots based on business hours, gap, and hidden hours
   const generateTimeSlots = () => {
@@ -71,21 +72,21 @@ export function AdvancedCalendar({ appointments, onAppointmentClick, onStatusCha
 
   const timeSlots = generateTimeSlots();
 
-  // Filter appointments for selected date and barber
+  // Filter appointments for selected date and staff
   const filteredAppointments = appointments.filter(apt => {
     const aptDate = parseISO(apt.date);
     const isSameDate = isSameDay(aptDate, selectedDate);
-    const isSameBarber = selectedBarber === 'all' || apt.barber === selectedBarber;
-    return isSameDate && isSameBarber;
+    const isSameStaff = selectedStaff === 'all' || apt.staff === selectedStaff;
+    return isSameDate && isSameStaff;
   });
 
-  // Get appointment for specific time slot and barber (considering duration)
-  const getAppointmentForSlot = (timeSlot: string, barber: string) => {
+  // Get appointment for specific time slot and staff (considering duration)
+  const getAppointmentForSlot = (timeSlot: string, staff: string) => {
     return filteredAppointments.find(apt => {
-      if (apt.barber !== barber) return false;
+      if (apt.staff !== staff) return false;
 
       // Parse appointment time and duration
-      const aptTime = apt.time; // e.g., "10:00"
+      const aptTime = apt.time;
       const durationMatch = apt.duration.match(/(\d+)/);
       const durationMinutes = durationMatch ? parseInt(durationMatch[1]) : timeSlotGap;
 
@@ -100,34 +101,75 @@ export function AdvancedCalendar({ appointments, onAppointmentClick, onStatusCha
   };
 
   // Get the main appointment (starting slot) for display purposes
-  const getMainAppointmentForSlot = (timeSlot: string, barber: string) => {
+  const getMainAppointmentForSlot = (timeSlot: string, staff: string) => {
     return filteredAppointments.find(apt => {
-      if (apt.barber !== barber) return false;
+      if (apt.staff !== staff) return false;
       return apt.time === timeSlot;
     });
   };
 
   // Check if slot is part of a multi-slot appointment
-  const isSlotPartOfAppointment = (timeSlot: string, barber: string) => {
-    return !!getAppointmentForSlot(timeSlot, barber);
+  const isSlotPartOfAppointment = (timeSlot: string, staff: string) => {
+    return !!getAppointmentForSlot(timeSlot, staff);
   };
 
   // Check if slot is the starting slot of an appointment
-  const isStartingSlot = (timeSlot: string, barber: string) => {
-    const appointment = getMainAppointmentForSlot(timeSlot, barber);
+  const isStartingSlot = (timeSlot: string, staff: string) => {
+    const appointment = getMainAppointmentForSlot(timeSlot, staff);
     return !!appointment;
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "completed": return "bg-green-500";
+      case "confirmed": return "bg-green-500";
+      case "completed": return "bg-emerald-600";
       case "in-progress": return "bg-blue-500";
       case "scheduled": return "bg-yellow-500";
       case "approved": return "bg-purple-500";
       case "pending": return "bg-orange-500";
       case "cancelled": return "bg-red-500";
       case "rejected": return "bg-gray-500";
+      case "no-show": return "bg-red-700";
+      case "rescheduled": return "bg-indigo-500";
+      case "waiting": return "bg-amber-400";
+      case "arrived": return "bg-cyan-500";
       default: return "bg-gray-300";
+    }
+  };
+
+  const getStatusTextColor = (status: string) => {
+    switch (status) {
+      case "confirmed": return "text-green-700";
+      case "completed": return "text-emerald-700";
+      case "in-progress": return "text-blue-700";
+      case "scheduled": return "text-yellow-700";
+      case "approved": return "text-purple-700";
+      case "pending": return "text-orange-700";
+      case "cancelled": return "text-red-700";
+      case "rejected": return "text-gray-700";
+      case "no-show": return "text-red-800";
+      case "rescheduled": return "text-indigo-700";
+      case "waiting": return "text-amber-700";
+      case "arrived": return "text-cyan-700";
+      default: return "text-gray-700";
+    }
+  };
+
+  const getStatusBgColor = (status: string) => {
+    switch (status) {
+      case "confirmed": return "bg-green-50 border-green-200";
+      case "completed": return "bg-emerald-50 border-emerald-200";
+      case "in-progress": return "bg-blue-50 border-blue-200";
+      case "scheduled": return "bg-yellow-50 border-yellow-200";
+      case "approved": return "bg-purple-50 border-purple-200";
+      case "pending": return "bg-orange-50 border-orange-200";
+      case "cancelled": return "bg-red-50 border-red-200";
+      case "rejected": return "bg-gray-50 border-gray-200";
+      case "no-show": return "bg-red-100 border-red-300";
+      case "rescheduled": return "bg-indigo-50 border-indigo-200";
+      case "waiting": return "bg-amber-50 border-amber-200";
+      case "arrived": return "bg-cyan-50 border-cyan-200";
+      default: return "bg-gray-50 border-gray-200";
     }
   };
 
@@ -151,11 +193,11 @@ export function AdvancedCalendar({ appointments, onAppointmentClick, onStatusCha
   };
 
   return (
-    <Card className="w-full">
-      <CardHeader>
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-          <CardTitle className="flex items-center gap-2">
-            <Calendar className="w-5 h-5" />
+    <Card className="w-full max-h-[600px] flex flex-col">
+      <CardHeader className="pb-3">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <Calendar className="w-4 h-4" />
             Advanced Booking Calendar
           </CardTitle>
           <div className="flex flex-wrap items-center gap-2">
@@ -286,17 +328,17 @@ export function AdvancedCalendar({ appointments, onAppointmentClick, onStatusCha
                 </div>
               </div>
 
-              {/* Barber Filter */}
+              {/* Staff Filter */}
               <div className="space-y-2">
-                <Label className="text-sm font-medium">Filter Barber</Label>
-                <Select value={selectedBarber} onValueChange={setSelectedBarber}>
+                <Label className="text-sm font-medium">Filter Staff</Label>
+                <Select value={selectedStaff} onValueChange={setSelectedStaff}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select Barber" />
+                    <SelectValue placeholder="Select Staff" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All Barbers</SelectItem>
-                    {barbers.map(barber => (
-                      <SelectItem key={barber} value={barber}>{barber}</SelectItem>
+                    <SelectItem value="all">All Staff</SelectItem>
+                    {staffs.map(staff => (
+                      <SelectItem key={staff} value={staff}>{staff}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -305,9 +347,61 @@ export function AdvancedCalendar({ appointments, onAppointmentClick, onStatusCha
           </div>
         )}
       </CardHeader>
-      <CardContent>
-        <div className="overflow-x-auto overflow-y-auto max-h-[500px] sm:max-h-[600px] w-full">
-          <div className="min-w-full" style={{ width: 'max-content' }}>
+
+      {/* Status Legend */}
+      <div className="px-6 pb-4 border-b border-gray-100">
+        <div className="flex flex-wrap items-center gap-4 text-sm">
+          <span className="font-medium text-gray-700">Status Legend:</span>
+          <div className="flex items-center gap-1">
+            <div className="w-3 h-3 rounded-full bg-green-500"></div>
+            <span className="text-gray-600">Confirmed</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <div className="w-3 h-3 rounded-full bg-emerald-600"></div>
+            <span className="text-gray-600">Completed</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <div className="w-3 h-3 rounded-full bg-blue-500"></div>
+            <span className="text-gray-600">In Progress</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
+            <span className="text-gray-600">Scheduled</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <div className="w-3 h-3 rounded-full bg-purple-500"></div>
+            <span className="text-gray-600">Approved</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <div className="w-3 h-3 rounded-full bg-orange-500"></div>
+            <span className="text-gray-600">Pending</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <div className="w-3 h-3 rounded-full bg-red-500"></div>
+            <span className="text-gray-600">Cancelled</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <div className="w-3 h-3 rounded-full bg-red-700"></div>
+            <span className="text-gray-600">No Show</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <div className="w-3 h-3 rounded-full bg-indigo-500"></div>
+            <span className="text-gray-600">Rescheduled</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <div className="w-3 h-3 rounded-full bg-amber-400"></div>
+            <span className="text-gray-600">Waiting</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <div className="w-3 h-3 rounded-full bg-cyan-500"></div>
+            <span className="text-gray-600">Arrived</span>
+          </div>
+        </div>
+      </div>
+
+      <CardContent className="p-0 overflow-hidden h-[500px]">
+        <div className="h-full overflow-x-auto overflow-y-auto w-full bg-background">
+          <div className="min-w-full" style={{ width: 'max-content', minHeight: '100%' }}>
             {layoutMode === 'time-top' ? (
               // Time on top, Employees on left (current layout)
               <>
@@ -323,78 +417,102 @@ export function AdvancedCalendar({ appointments, onAppointmentClick, onStatusCha
                   ))}
                 </div>
 
-                {/* Barber rows */}
-                {(selectedBarber === 'all' ? barbers : [selectedBarber]).map(barber => (
-                  <div key={barber} className="grid gap-1 mb-1" style={{ gridTemplateColumns: `clamp(120px, 15vw, 200px) repeat(${timeSlots.length}, minmax(50px, 1fr))` }}>
-                    <div className="p-2 sm:p-3 bg-muted rounded flex items-center gap-2 sticky left-0 border-r" style={{ minWidth: 'clamp(120px, 15vw, 200px)' }}>
-                      <User className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-                      <span className="font-medium text-xs sm:text-sm truncate">{barber}</span>
-                    </div>
-                    {timeSlots.map(slot => {
-                      const appointment = getAppointmentForSlot(slot, barber);
-                      const isStarting = isStartingSlot(slot, barber);
-                      const isPartOfAppointment = isSlotPartOfAppointment(slot, barber);
+                {/* Staff rows */}
+                {(selectedStaff === 'all' ? staffs : [selectedStaff]).map(staff => {
+                  const staffAppointments = appointments.filter(apt => apt.staff === staff);
+                  const staffAvatar = staffAppointments[0]?.staffAvatar || '/api/placeholder/32/32';
 
-                      return (
-                        <div
-                          key={`${barber}-${slot}`}
-                          className={`p-1 border rounded cursor-pointer hover:shadow-md transition-all duration-200 min-h-[60px] flex items-center justify-center ${
-                            isPartOfAppointment
-                              ? `border-2 border-primary/50 ${getStatusColor(appointment?.status || 'scheduled')}/20`
-                              : 'border-dashed border-muted-foreground/30 hover:border-muted-foreground/50'
-                          }`}
-                          onClick={() => appointment && onAppointmentClick(appointment)}
-                        >
-                          {isStarting && appointment ? (
-                            <div className="w-full h-full flex flex-col items-center justify-center text-xs p-1">
-                              <div className={`w-3 h-3 rounded-full mb-1 ${getStatusColor(appointment.status)}`} />
-                              <div className="font-medium truncate w-full text-center leading-tight">
-                                {appointment.customer.split(' ')[0]}
+                  return (
+                    <div key={staff} className="grid gap-1 mb-1" style={{ gridTemplateColumns: `clamp(120px, 15vw, 200px) repeat(${timeSlots.length}, minmax(50px, 1fr))` }}>
+                      <div className="p-2 sm:p-3 bg-muted rounded flex items-center gap-2 sticky left-0 border-r" style={{ minWidth: 'clamp(120px, 15vw, 200px)' }}>
+                        <img
+                          src={staffAvatar}
+                          alt={staff}
+                          className="w-6 h-6 sm:w-8 sm:h-8 rounded-full object-cover flex-shrink-0"
+                          onError={(e) => {
+                            e.currentTarget.src = '/api/placeholder/32/32';
+                          }}
+                        />
+                        <span className="font-medium text-xs sm:text-sm truncate">{staff}</span>
+                      </div>
+                      {timeSlots.map(slot => {
+                        const appointment = getAppointmentForSlot(slot, staff);
+                        const isStarting = isStartingSlot(slot, staff);
+                        const isPartOfAppointment = isSlotPartOfAppointment(slot, staff);
+
+                        return (
+                          <div
+                            key={`${staff}-${slot}`}
+                            className={`p-1 border rounded cursor-pointer hover:shadow-md transition-all duration-200 min-h-[60px] flex items-center justify-center ${
+                              isPartOfAppointment
+                                ? `${getStatusBgColor(appointment?.status || 'scheduled')} border-2`
+                                : 'border-dashed border-muted-foreground/30 hover:border-muted-foreground/50 bg-gray-50/50'
+                            }`}
+                            onClick={() => appointment && onAppointmentClick(appointment)}
+                          >
+                            {isStarting && appointment ? (
+                              <div className="w-full h-full flex flex-col items-center justify-center text-xs p-1">
+                                <div className={`w-3 h-3 rounded-full mb-1 ${getStatusColor(appointment.status)} shadow-sm`} />
+                                <div className={`font-medium truncate w-full text-center leading-tight ${getStatusTextColor(appointment.status)}`}>
+                                  {appointment.customer.split(' ')[0]}
+                                </div>
+                                <div className="text-muted-foreground truncate w-full text-center text-[10px] leading-tight">
+                                  {appointment.service}
+                                </div>
+                                <div className="text-muted-foreground text-[9px] mt-1">
+                                  {appointment.duration}
+                                </div>
                               </div>
-                              <div className="text-muted-foreground truncate w-full text-center text-[10px] leading-tight">
-                                {appointment.service}
+                            ) : isPartOfAppointment ? (
+                              <div className="w-full h-full flex items-center justify-center">
+                                <div className={`w-2 h-2 rounded-full ${getStatusColor(appointment?.status || 'scheduled')}`} />
                               </div>
-                              <div className="text-muted-foreground text-[9px] mt-1">
-                                {appointment.duration}
+                            ) : (
+                              <div
+                                className="text-muted-foreground/50 text-xs text-center cursor-pointer hover:text-primary transition-colors"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onCreateBooking && onCreateBooking(staff, format(selectedDate, 'yyyy-MM-dd'), slot);
+                                }}
+                              >
+                                + Book
                               </div>
-                            </div>
-                          ) : isPartOfAppointment ? (
-                            <div className="w-full h-full flex items-center justify-center">
-                              <div className={`w-2 h-2 rounded-full ${getStatusColor(appointment?.status || 'scheduled')}`} />
-                            </div>
-                          ) : (
-                            <div
-                              className="text-muted-foreground/50 text-xs text-center cursor-pointer hover:text-primary transition-colors"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                onCreateBooking && onCreateBooking(barber, format(selectedDate, 'yyyy-MM-dd'), slot);
-                              }}
-                            >
-                              + Book
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                ))}
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
+                })}
               </>
             ) : (
               // Employees on top, Time on left (rotated layout)
               <>
-                {/* Header with barbers */}
+                {/* Header with staffs */}
                 <div className="grid gap-1 mb-2 sticky top-0 bg-background z-10" style={{ gridTemplateColumns: `clamp(120px, 15vw, 150px) 1fr` }}>
                   <div className="p-2 font-medium text-sm text-muted-foreground">
                     Time / Employee
                   </div>
-                  <div className="grid gap-1" style={{ gridTemplateColumns: `repeat(${(selectedBarber === 'all' ? barbers : [selectedBarber]).length}, minmax(80px, 1fr))` }}>
-                    {(selectedBarber === 'all' ? barbers : [selectedBarber]).map(barber => (
-                      <div key={barber} className="p-2 text-xs text-center font-medium text-muted-foreground border rounded bg-muted/50 flex items-center justify-center gap-1">
-                        <User className="w-3 h-3" />
-                        <span className="hidden sm:inline">{barber}</span>
-                        <span className="sm:hidden">{barber.split(' ')[0]}</span>
-                      </div>
-                    ))}
+                  <div className="grid gap-1" style={{ gridTemplateColumns: `repeat(${(selectedStaff === 'all' ? staffs : [selectedStaff]).length}, minmax(80px, 1fr))` }}>
+                    {(selectedStaff === 'all' ? staffs : [selectedStaff]).map(staff => {
+                      const staffAppointments = appointments.filter(apt => apt.staff === staff);
+                      const staffAvatar = staffAppointments[0]?.staffAvatar || '/api/placeholder/32/32';
+
+                      return (
+                        <div key={staff} className="p-2 text-xs text-center font-medium text-muted-foreground border rounded bg-muted/50 flex flex-col items-center justify-center gap-1">
+                          <img
+                            src={staffAvatar}
+                            alt={staff}
+                            className="w-6 h-6 rounded-full object-cover"
+                            onError={(e) => {
+                              e.currentTarget.src = '/api/placeholder/32/32';
+                            }}
+                          />
+                          <span className="hidden sm:inline">{staff}</span>
+                          <span className="sm:hidden">{staff.split(' ')[0]}</span>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
 
@@ -405,25 +523,25 @@ export function AdvancedCalendar({ appointments, onAppointmentClick, onStatusCha
                       <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
                       <span className="font-medium text-xs sm:text-sm">{slot}</span>
                     </div>
-                    <div className="grid gap-1" style={{ gridTemplateColumns: `repeat(${(selectedBarber === 'all' ? barbers : [selectedBarber]).length}, minmax(60px, 1fr))` }}>
-                      {(selectedBarber === 'all' ? barbers : [selectedBarber]).map(barber => {
-                        const appointment = getAppointmentForSlot(slot, barber);
-                        const isStarting = isStartingSlot(slot, barber);
-                        const isPartOfAppointment = isSlotPartOfAppointment(slot, barber);
+                    <div className="grid gap-1" style={{ gridTemplateColumns: `repeat(${(selectedStaff === 'all' ? staffs : [selectedStaff]).length}, minmax(60px, 1fr))` }}>
+                      {(selectedStaff === 'all' ? staffs : [selectedStaff]).map(staff => {
+                        const appointment = getAppointmentForSlot(slot, staff);
+                        const isStarting = isStartingSlot(slot, staff);
+                        const isPartOfAppointment = isSlotPartOfAppointment(slot, staff);
 
                         return (
                           <div
-                            key={`${slot}-${barber}`}
+                            key={`${slot}-${staff}`}
                             className={`p-1 border rounded cursor-pointer hover:shadow-md transition-all duration-200 min-h-[80px] flex items-center justify-center ${
                               isPartOfAppointment
-                                ? `border-2 border-primary/50 ${getStatusColor(appointment?.status || 'scheduled')}/20`
-                                : 'border-dashed border-muted-foreground/30 hover:border-muted-foreground/50'
+                                ? `${getStatusBgColor(appointment?.status || 'scheduled')} border-2`
+                                : 'border-dashed border-muted-foreground/30 hover:border-muted-foreground/50 bg-gray-50/50'
                             }`}
                             onClick={() => appointment && onAppointmentClick(appointment)}
                           >
                             {isStarting && appointment ? (
                               <div className="w-full h-full flex flex-col items-center justify-center text-xs p-1">
-                                <div className={`w-3 h-3 rounded-full mb-1 ${getStatusColor(appointment.status)}`} />
+                                <div className={`w-3 h-3 rounded-full mb-1 ${getStatusColor(appointment.status)} shadow-sm`} />
                                 <div className="font-medium truncate w-full text-center leading-tight">
                                   {appointment.customer.split(' ')[0]}
                                 </div>
@@ -443,7 +561,7 @@ export function AdvancedCalendar({ appointments, onAppointmentClick, onStatusCha
                                 className="text-muted-foreground/50 text-xs text-center cursor-pointer hover:text-primary transition-colors"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  onCreateBooking && onCreateBooking(barber, format(selectedDate, 'yyyy-MM-dd'), slot);
+                                  onCreateBooking && onCreateBooking(staff, format(selectedDate, 'yyyy-MM-dd'), slot);
                                 }}
                               >
                                 + Book
@@ -459,56 +577,30 @@ export function AdvancedCalendar({ appointments, onAppointmentClick, onStatusCha
             )}
           </div>
         </div>
+      </CardContent>
 
-        {/* Legend and Info */}
-        <div className="mt-6 space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div className="flex flex-wrap gap-4 text-xs">
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-green-500" />
-                <span>Completed</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-blue-500" />
-                <span>In Progress</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-yellow-500" />
-                <span>Scheduled</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-purple-500" />
-                <span>Approved</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-orange-500" />
-                <span>Pending</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-red-500" />
-                <span>Cancelled/Rejected</span>
-              </div>
-              <div className="flex items-center gap-2 ml-4 pl-4 border-l">
-                <div className="w-2 h-2 rounded-full bg-blue-500" />
-                <span className="text-muted-foreground">Duration slots</span>
-              </div>
+      {/* Legend and Info */}
+      <div className="px-6 py-4 border-t border-gray-100 bg-muted/30 text-xs text-gray-600">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1">
+              <div className="w-3 h-3 rounded bg-blue-100 border border-blue-300"></div>
+              <span>Starting slot</span>
             </div>
-
-            <div className="text-xs text-muted-foreground">
-              <div className="flex items-center gap-4">
-                <span>Gap: {timeSlotGap}min</span>
-                <span>Hours: {businessHours.start > 12 ? `${businessHours.start - 12}PM` : `${businessHours.start}AM`} - {businessHours.end > 12 ? `${businessHours.end - 12}PM` : `${businessHours.end}AM`}</span>
-                <span>Layout: {layoutMode === 'time-top' ? 'Time → Employees' : 'Employees → Time'}</span>
-              </div>
+            <div className="flex items-center gap-1">
+              <div className="w-2 h-2 rounded-full bg-gray-400"></div>
+              <span>Continuation slot</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="w-3 h-3 border border-dashed border-gray-400 rounded"></div>
+              <span>Available slot</span>
             </div>
           </div>
-
-          {/* Mobile responsiveness note */}
-          <div className="text-xs text-muted-foreground bg-muted/50 p-3 rounded-lg">
-            💡 <strong>Duration Highlighting:</strong> Booked services span multiple time slots based on their duration (e.g., 60min service occupies 2x 30min slots). The starting slot shows full details, while subsequent slots show status indicators.
+          <div className="text-muted-foreground">
+            Showing {filteredAppointments.length} appointment{filteredAppointments.length !== 1 ? 's' : ''} for {format(selectedDate, 'MMM dd, yyyy')}
           </div>
         </div>
-      </CardContent>
+      </div>
     </Card>
   );
 }

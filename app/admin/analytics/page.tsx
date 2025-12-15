@@ -28,7 +28,32 @@ export default function AdminAnalytics() {
     router.push('/login');
   };
 
+  const handleAddExpense = () => {
+    if (!expenseCategory || !expenseAmount) return;
+
+    // Here you would typically make an API call to save the expense
+    console.log('Adding expense:', {
+      category: expenseCategory,
+      amount: parseFloat(expenseAmount),
+      description: expenseDescription,
+      date: new Date().toISOString().split('T')[0]
+    });
+
+    // Reset form
+    setExpenseCategory('');
+    setExpenseAmount('');
+    setExpenseDescription('');
+
+    // Show success message (you could add a toast notification here)
+    alert('Expense added successfully!');
+  };
+
   const [timeRange, setTimeRange] = useState('30d');
+
+  // Expense form state
+  const [expenseCategory, setExpenseCategory] = useState('');
+  const [expenseAmount, setExpenseAmount] = useState('');
+  const [expenseDescription, setExpenseDescription] = useState('');
 
   // Comprehensive analytics data with detailed reports
   const analytics = {
@@ -134,6 +159,30 @@ export default function AdminAnalytics() {
       newCustomers: 156,
       returningCustomers: 736,
       retentionRate: 82.5
+    },
+    // Branch Expenses and Charges
+    expenses: {
+      totalExpenses: 15800,
+      operatingCosts: 9200,
+      staffSalaries: 6600,
+      revenue: 45280,
+      categories: [
+        { name: 'Rent', amount: 3500, percentage: 22.2 },
+        { name: 'Utilities', amount: 1200, percentage: 7.6 },
+        { name: 'Supplies', amount: 800, percentage: 5.1 },
+        { name: 'Staff Salaries', amount: 6600, percentage: 41.8 },
+        { name: 'Equipment', amount: 1800, percentage: 11.4 },
+        { name: 'Marketing', amount: 900, percentage: 5.7 },
+        { name: 'Maintenance', amount: 600, percentage: 3.8 },
+        { name: 'Insurance', amount: 400, percentage: 2.5 }
+      ],
+      recentExpenses: [
+        { date: '2025-12-15', category: 'Supplies', description: 'Hair products and styling tools', amount: 450 },
+        { date: '2025-12-14', category: 'Utilities', description: 'Electricity bill', amount: 320 },
+        { date: '2025-12-13', category: 'Equipment', description: 'New clippers maintenance', amount: 180 },
+        { date: '2025-12-12', category: 'Marketing', description: 'Social media ads', amount: 250 },
+        { date: '2025-12-11', category: 'Rent', description: 'Monthly rent payment', amount: 3500 }
+      ]
     }
   };
 
@@ -314,20 +363,7 @@ export default function AdminAnalytics() {
           <div className="flex-1 overflow-auto">
             <div className="p-4 lg:p-8">
               {/* Overview Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-                    <DollarSign className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">{formatCurrency(analytics.overview.totalRevenue)}</div>
-                    <p className="text-xs text-muted-foreground">
-                      <span className="text-green-600">{formatPercentage(analytics.overview.revenueChange)}</span> from last period
-                    </p>
-                  </CardContent>
-                </Card>
-
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-sm font-medium">Total Bookings</CardTitle>
@@ -370,11 +406,12 @@ export default function AdminAnalytics() {
 
               {/* Comprehensive Reports Tabs */}
               <Tabs defaultValue="overview" className="space-y-6">
-                <TabsList className="grid w-full grid-cols-6">
+                <TabsList className="grid w-full grid-cols-7">
                   <TabsTrigger value="overview">Overview</TabsTrigger>
                   <TabsTrigger value="registrations">Registrations</TabsTrigger>
                   <TabsTrigger value="budget">Budget</TabsTrigger>
                   <TabsTrigger value="charges">Charges</TabsTrigger>
+                  <TabsTrigger value="expenses">Expenses</TabsTrigger>
                   <TabsTrigger value="calculations">Calculations</TabsTrigger>
                   <TabsTrigger value="performance">Performance</TabsTrigger>
                 </TabsList>
@@ -723,6 +760,184 @@ export default function AdminAnalytics() {
                       </CardContent>
                     </Card>
                   </div>
+                </TabsContent>
+
+                {/* Branch Charges & Expenses Tab */}
+                <TabsContent value="expenses" className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+                    <Card>
+                      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Total Expenses</CardTitle>
+                        <Receipt className="h-4 w-4 text-red-600" />
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-2xl font-bold text-red-600">{formatCurrency(analytics.expenses?.totalExpenses || 0)}</div>
+                        <p className="text-xs text-muted-foreground">
+                          This month
+                        </p>
+                      </CardContent>
+                    </Card>
+
+                    <Card>
+                      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Operating Costs</CardTitle>
+                        <Calculator className="h-4 w-4 text-orange-600" />
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-2xl font-bold">{formatCurrency(analytics.expenses?.operatingCosts || 0)}</div>
+                        <p className="text-xs text-muted-foreground">
+                          Rent, utilities, supplies
+                        </p>
+                      </CardContent>
+                    </Card>
+
+                    <Card>
+                      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Staff Salaries</CardTitle>
+                        <Users className="h-4 w-4 text-blue-600" />
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-2xl font-bold">{formatCurrency(analytics.expenses?.staffSalaries || 0)}</div>
+                        <p className="text-xs text-muted-foreground">
+                          Monthly payroll
+                        </p>
+                      </CardContent>
+                    </Card>
+
+                    <Card>
+                      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Net Profit</CardTitle>
+                        <TrendingUp className="h-4 w-4 text-green-600" />
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-2xl font-bold text-green-600">
+                          {formatCurrency((analytics.expenses?.revenue || 0) - (analytics.expenses?.totalExpenses || 0))}
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          Revenue minus expenses
+                        </p>
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* Expense Categories */}
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Expense Categories</CardTitle>
+                        <CardDescription>Breakdown of monthly expenses</CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-4">
+                          {(analytics.expenses?.categories || []).map((category, index) => (
+                            <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                              <div className="flex items-center gap-3">
+                                <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                                <span className="font-medium">{category.name}</span>
+                              </div>
+                              <div className="text-right">
+                                <p className="font-semibold">{formatCurrency(category.amount)}</p>
+                                <p className="text-sm text-gray-600">{category.percentage}%</p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    {/* Add New Expense */}
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Add New Expense</CardTitle>
+                        <CardDescription>Record branch expenses and charges</CardDescription>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium">Expense Category</label>
+                          <Select value={expenseCategory} onValueChange={setExpenseCategory}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select category" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="rent">Rent</SelectItem>
+                              <SelectItem value="utilities">Utilities</SelectItem>
+                              <SelectItem value="supplies">Supplies</SelectItem>
+                              <SelectItem value="equipment">Equipment</SelectItem>
+                              <SelectItem value="marketing">Marketing</SelectItem>
+                              <SelectItem value="maintenance">Maintenance</SelectItem>
+                              <SelectItem value="insurance">Insurance</SelectItem>
+                              <SelectItem value="other">Other</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium">Amount</label>
+                          <div className="relative">
+                            <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                            <input
+                              type="number"
+                              value={expenseAmount}
+                              onChange={(e) => setExpenseAmount(e.target.value)}
+                              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              placeholder="0.00"
+                              step="0.01"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium">Description</label>
+                          <textarea
+                            value={expenseDescription}
+                            onChange={(e) => setExpenseDescription(e.target.value)}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            placeholder="Describe the expense..."
+                            rows={3}
+                          />
+                        </div>
+
+                        <Button onClick={handleAddExpense} className="w-full" disabled={!expenseCategory || !expenseAmount}>
+                          <Receipt className="w-4 h-4 mr-2" />
+                          Add Expense
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  {/* Recent Expenses Table */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Recent Expenses</CardTitle>
+                      <CardDescription>Latest expense entries for this branch</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Date</TableHead>
+                            <TableHead>Category</TableHead>
+                            <TableHead>Description</TableHead>
+                            <TableHead className="text-right">Amount</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {(analytics.expenses?.recentExpenses || []).map((expense, index) => (
+                            <TableRow key={index}>
+                              <TableCell>{expense.date}</TableCell>
+                              <TableCell>
+                                <Badge variant="outline">{expense.category}</Badge>
+                              </TableCell>
+                              <TableCell className="max-w-xs truncate">{expense.description}</TableCell>
+                              <TableCell className="text-right font-semibold text-red-600">
+                                -{formatCurrency(expense.amount)}
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </CardContent>
+                  </Card>
                 </TabsContent>
 
                 {/* Calculations Tab */}

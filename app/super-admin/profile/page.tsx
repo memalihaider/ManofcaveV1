@@ -37,7 +37,7 @@ export default function SuperAdminProfile() {
     dateOfBirth: '1985-03-20',
     joinDate: '2022-06-01',
     role: 'Super Admin',
-    organization: 'Premium Cuts Inc.',
+    organization: 'Man of Cave Inc.',
     profileImage: null as File | null,
     profileImageUrl: ''
   });

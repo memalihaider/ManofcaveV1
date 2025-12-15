@@ -62,7 +62,7 @@ const branchAdminNavItems = [
     icon: Calendar,
   },
   {
-    title: 'Staff',
+    title: 'HR Management',
     href: '/admin/staff',
     icon: Users,
   },
@@ -72,9 +72,14 @@ const branchAdminNavItems = [
     icon: Scissors,
   },
   {
-    title: 'Products',
-    href: '/admin/products',
-    icon: Package,
+    title: 'Orders',
+    href: '/admin/orders',
+    icon: ShoppingCart,
+  },
+  {
+    title: 'POS',
+    href: '/admin/pos',
+    icon: CreditCard,
   },
   {
     title: 'Categories',
@@ -102,9 +107,19 @@ const branchAdminNavItems = [
     icon: Users,
   },
   {
+    title: 'Clients',
+    href: '/admin/clients',
+    icon: User,
+  },
+  {
     title: 'Messages',
     href: '/admin/messages',
     icon: MessageCircle,
+  },
+  {
+    title: 'Marketing',
+    href: '/admin/marketing',
+    icon: Target,
   },
   {
     title: 'Profile',
@@ -135,7 +150,7 @@ const superAdminNavItems = [
     icon: Calendar,
   },
   {
-    title: 'Staff Management',
+    title: 'HR Management',
     href: '/super-admin/staff',
     icon: Users,
   },
@@ -148,6 +163,16 @@ const superAdminNavItems = [
     title: 'Products',
     href: '/super-admin/products',
     icon: Package,
+  },
+  {
+    title: 'Orders',
+    href: '/super-admin/orders',
+    icon: ShoppingCart,
+  },
+  {
+    title: 'POS',
+    href: '/admin/pos',
+    icon: CreditCard,
   },
   {
     title: 'Categories',
@@ -180,6 +205,11 @@ const superAdminNavItems = [
     icon: MessageCircle,
   },
   {
+    title: 'Marketing',
+    href: '/admin/marketing',
+    icon: Target,
+  },
+  {
     title: 'Financial',
     href: '/super-admin/financial',
     icon: DollarSign,
@@ -208,7 +238,7 @@ function SidebarContent({ role, onLogout, onToggle, isCollapsed = false }: Omit<
           <Link href="/" className="flex items-center gap-2">
             <Scissors className="h-6 w-6 lg:h-8 lg:w-8 text-primary" />
             {!isCollapsed && (
-              <span className="text-lg lg:text-xl font-serif font-bold text-primary">Premium Cuts</span>
+              <span className="text-lg lg:text-xl font-serif font-bold text-primary">Man of Cave</span>
             )}
           </Link>
           <div className="flex items-center gap-2">

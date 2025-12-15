@@ -1,7 +1,9 @@
 import { create } from 'zustand';
 
 interface BookingData {
+  bookingType: 'services' | 'products' | 'both';
   service: string;
+  products: string[];
   barber: string;
   date: string;
   time: string;
@@ -15,7 +17,7 @@ interface BookingData {
 interface BookingStore {
   bookingData: BookingData;
   currentStep: number;
-  updateBookingData: (field: keyof BookingData, value: string) => void;
+  updateBookingData: (field: keyof BookingData, value: string | string[]) => void;
   setStep: (step: number) => void;
   nextStep: () => void;
   prevStep: () => void;
@@ -23,7 +25,9 @@ interface BookingStore {
 }
 
 const initialBookingData: BookingData = {
+  bookingType: 'services',
   service: '',
+  products: [],
   barber: '',
   date: '',
   time: '',
@@ -47,7 +51,7 @@ export const useBookingStore = create<BookingStore>((set, get) => ({
 
   nextStep: () =>
     set((state) => ({
-      currentStep: Math.min(state.currentStep + 1, 5),
+      currentStep: Math.min(state.currentStep + 1, 6),
     })),
 
   prevStep: () =>

@@ -33,10 +33,10 @@ export default function AdminDashboard() {
   };
 
   const todayAppointments = [
-    { id: 1, time: "9:00 AM", customer: "John Doe", service: "Haircut", status: "completed", barber: "Mike" },
-    { id: 2, time: "10:00 AM", customer: "Jane Smith", service: "Beard Trim", status: "in-progress", barber: "Alex" },
-    { id: 3, time: "11:00 AM", customer: "Bob Johnson", service: "Premium Package", status: "scheduled", barber: "Mike" },
-    { id: 4, time: "2:00 PM", customer: "Alice Brown", service: "Haircut", status: "scheduled", barber: "Sarah" },
+    { id: 1, time: "9:00 AM", customer: "John Doe", service: "Haircut", status: "completed", staff: "Mike" },
+    { id: 2, time: "10:00 AM", customer: "Jane Smith", service: "Beard Trim", status: "in-progress", staff: "Alex" },
+    { id: 3, time: "11:00 AM", customer: "Bob Johnson", service: "Premium Package", status: "scheduled", staff: "Mike" },
+    { id: 4, time: "2:00 PM", customer: "Alice Brown", service: "Haircut", status: "scheduled", staff: "Sarah" },
   ];
 
   const getStatusColor = (status: string) => {
@@ -171,7 +171,7 @@ export default function AdminDashboard() {
                             <div>
                               <div className="font-medium">{appointment.customer}</div>
                               <div className="text-sm text-gray-600">{appointment.service}</div>
-                              <div className="text-sm text-gray-500">with {appointment.barber}</div>
+                              <div className="text-sm text-gray-500">with {appointment.staff}</div>
                             </div>
                           </div>
                           <Badge className={getStatusColor(appointment.status)}>

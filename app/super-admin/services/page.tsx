@@ -215,7 +215,7 @@ export default function SuperAdminServices() {
         {/* Main Content */}
         <div className={cn(
           "flex-1 flex flex-col transition-all duration-300 ease-in-out",
-          sidebarOpen ? "lg:ml-64" : "lg:ml-0"
+          sidebarOpen ? "lg:ml-0" : "lg:ml-0"
         )}>
           {/* Header */}
           <header className="bg-white shadow-sm border-b">

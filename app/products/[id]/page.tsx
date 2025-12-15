@@ -11,11 +11,20 @@ import { Separator } from '@/components/ui/separator';
 import { Carousel } from '@/components/ui/carousel';
 import { ShoppingCart, Star, ArrowLeft, Heart, Share2, Truck, Shield, RotateCcw, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useCartStore } from '@/stores/cart.store';
+import { useCurrencyStore } from '@/stores/currency.store';
 
 export default function ProductDetailPage() {
   const params = useParams();
   const router = useRouter();
   const { addItem } = useCartStore();
+  const { convertPrice, getCurrencySymbol } = useCurrencyStore();
+
+  // Helper function to format prices with currency conversion
+  const formatPrice = (price: number) => {
+    const convertedPrice = convertPrice(price);
+    const symbol = getCurrencySymbol();
+    return `${symbol}${convertedPrice}`;
+  };
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
 
@@ -130,7 +139,7 @@ export default function ProductDetailPage() {
       addItem({
         id: product.id,
         name: product.name,
-        price: product.price,
+        price: convertPrice(product.price),
         image: product.images[0],
       });
     }
@@ -224,7 +233,7 @@ export default function ProductDetailPage() {
                 </Badge>
                 {product.originalPrice && (
                   <Badge variant="destructive" className="text-xs">
-                    SAVE ${product.originalPrice - product.price}
+                    SAVE {formatPrice(product.originalPrice - product.price)}
                   </Badge>
                 )}
               </div>
@@ -240,9 +249,9 @@ export default function ProductDetailPage() {
               </div>
 
               <div className="flex items-center gap-3 mb-6">
-                <span className="text-3xl font-bold text-primary">${product.price}</span>
+                <span className="text-3xl font-bold text-primary">{formatPrice(product.price)}</span>
                 {product.originalPrice && (
-                  <span className="text-xl text-gray-500 line-through">${product.originalPrice}</span>
+                  <span className="text-xl text-gray-500 line-through">{formatPrice(product.originalPrice)}</span>
                 )}
               </div>
 
@@ -291,7 +300,7 @@ export default function ProductDetailPage() {
                       size="lg"
                     >
                       <ShoppingCart className="w-5 h-5 mr-2" />
-                      Add to Cart - ${(product.price * quantity).toFixed(2)}
+                      Add to Cart - {formatPrice(product.price * quantity)}
                     </Button>
                     <Button variant="outline" size="icon" className="p-3">
                       <Heart className="w-5 h-5" />

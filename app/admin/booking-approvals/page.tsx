@@ -61,7 +61,7 @@ export default function AdminBookingApprovals() {
       id: 1,
       customer: "John Doe",
       service: "Classic Haircut",
-      barber: "Mike Johnson",
+      staff: "Mike Johnson",
       date: "2025-12-01",
       time: "9:00 AM",
       duration: "30 min",
@@ -79,7 +79,7 @@ export default function AdminBookingApprovals() {
       id: 2,
       customer: "Jane Smith",
       service: "Premium Haircut & Style",
-      barber: "Sarah Wilson",
+      staff: "Sarah Wilson",
       date: "2025-12-01",
       time: "10:00 AM",
       duration: "45 min",
@@ -97,7 +97,7 @@ export default function AdminBookingApprovals() {
       id: 3,
       customer: "Bob Johnson",
       service: "Beard Trim & Shape",
-      barber: "Alex Chen",
+      staff: "Alex Chen",
       date: "2025-12-01",
       time: "11:00 AM",
       duration: "20 min",
@@ -115,7 +115,7 @@ export default function AdminBookingApprovals() {
       id: 4,
       customer: "Alice Brown",
       service: "Complete Grooming Package",
-      barber: "Mike Johnson",
+      staff: "Mike Johnson",
       date: "2025-12-01",
       time: "2:00 PM",
       duration: "90 min",
@@ -133,7 +133,7 @@ export default function AdminBookingApprovals() {
       id: 5,
       customer: "Charlie Wilson",
       service: "Hot Towel Shave",
-      barber: "Sarah Wilson",
+      staff: "Sarah Wilson",
       date: "2025-12-01",
       time: "4:00 PM",
       duration: "30 min",
@@ -151,7 +151,7 @@ export default function AdminBookingApprovals() {
       id: 6,
       customer: "David Lee",
       service: "Classic Haircut",
-      barber: "Alex Chen",
+      staff: "Alex Chen",
       date: "2025-12-02",
       time: "9:30 AM",
       duration: "30 min",
@@ -241,7 +241,7 @@ export default function AdminBookingApprovals() {
   const filteredAppointments = appointments.filter(appointment => {
     const matchesSearch = appointment.customer.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          appointment.service.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         appointment.barber.toLowerCase().includes(searchQuery.toLowerCase());
+                         appointment.staff.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = statusFilter === 'all' || appointment.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
@@ -413,7 +413,7 @@ export default function AdminBookingApprovals() {
                                 <div className="flex items-center gap-4 mt-1">
                                   <span className="text-sm flex items-center gap-1">
                                     <User className="w-3 h-3" />
-                                    {appointment.barber}
+                                    {appointment.staff}
                                   </span>
                                   <span className="text-sm flex items-center gap-1">
                                     <Calendar className="w-3 h-3" />

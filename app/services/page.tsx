@@ -10,11 +10,20 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { BookingModal } from '@/components/booking/BookingModal';
 import { Scissors, Star, Clock, MapPin, Search, Filter } from 'lucide-react';
+import { useCurrencyStore } from '@/stores/currency.store';
 
 export default function ServicesPage() {
   const [selectedBranch, setSelectedBranch] = useState('all');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const { convertPrice, getCurrencySymbol } = useCurrencyStore();
+
+  // Helper function to format prices with currency conversion
+  const formatPrice = (price: number) => {
+    const convertedPrice = convertPrice(price);
+    const symbol = getCurrencySymbol();
+    return `${symbol}${convertedPrice}`;
+  };
 
   // Mock data - in real app, this would come from API
   const branches = [
@@ -184,113 +193,213 @@ export default function ServicesPage() {
   });
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gray-50">
       <Header />
 
       {/* Hero Section */}
-      <section className="pt-24 pb-12 px-4 bg-gradient-to-br from-primary via-primary to-secondary">
-        <div className="max-w-6xl mx-auto text-center">
-          <h1 className="text-4xl md:text-5xl font-serif font-bold text-white mb-4">
-            Our Services
-          </h1>
-          <p className="text-xl text-white/90 max-w-2xl mx-auto">
-            Discover our complete range of professional grooming services
-          </p>
+      <section className="pt-20 pb-8 px-4 bg-gradient-to-br from-primary via-primary to-secondary">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-8">
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-bold text-white mb-4 leading-tight">
+              Our Premium Services
+            </h1>
+            <p className="text-lg sm:text-xl text-white/90 max-w-3xl mx-auto leading-relaxed">
+              Discover our complete range of professional grooming services tailored for the modern gentleman
+            </p>
+          </div>
+
+          {/* Quick Stats */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
+            <div className="text-center">
+              <div className="text-2xl sm:text-3xl font-bold text-white mb-1">50+</div>
+              <div className="text-sm text-white/80">Services</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl sm:text-3xl font-bold text-white mb-1">4.8</div>
+              <div className="text-sm text-white/80">Rating</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl sm:text-3xl font-bold text-white mb-1">10K+</div>
+              <div className="text-sm text-white/80">Happy Clients</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl sm:text-3xl font-bold text-white mb-1">5</div>
+              <div className="text-sm text-white/80">Locations</div>
+            </div>
+          </div>
         </div>
       </section>
 
-      <div className="max-w-6xl mx-auto px-4 py-8">
+      <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Filters */}
-        <div className="bg-white rounded-lg shadow-sm border p-6 mb-8">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1">
+        <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-4 sm:p-6 mb-8">
+          <div className="flex flex-col lg:flex-row gap-4 items-stretch lg:items-center">
+            {/* Search Bar */}
+            <div className="flex-1 min-w-0">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                 <Input
                   placeholder="Search services..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
+                  className="pl-12 h-12 text-base border-gray-200 focus:border-primary focus:ring-primary/20"
                 />
               </div>
             </div>
-            <Select value={selectedBranch} onValueChange={setSelectedBranch}>
-              <SelectTrigger className="w-full md:w-48">
-                <SelectValue placeholder="Select Branch" />
-              </SelectTrigger>
-              <SelectContent>
-                {branches.map(branch => (
-                  <SelectItem key={branch.id} value={branch.id}>
-                    {branch.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-              <SelectTrigger className="w-full md:w-48">
-                <SelectValue placeholder="Select Category" />
-              </SelectTrigger>
-              <SelectContent>
-                {categories.map(category => (
-                  <SelectItem key={category.id} value={category.id}>
-                    {category.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+
+            {/* Filter Dropdowns */}
+            <div className="flex flex-col sm:flex-row gap-3 lg:gap-4">
+              <Select value={selectedBranch} onValueChange={setSelectedBranch}>
+                <SelectTrigger className="w-full sm:w-48 h-12 border-gray-200 focus:border-primary focus:ring-primary/20">
+                  <div className="flex items-center gap-2">
+                    <MapPin className="w-4 h-4 text-gray-500" />
+                    <SelectValue placeholder="All Branches" />
+                  </div>
+                </SelectTrigger>
+                <SelectContent>
+                  {branches.map(branch => (
+                    <SelectItem key={branch.id} value={branch.id}>
+                      {branch.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                <SelectTrigger className="w-full sm:w-48 h-12 border-gray-200 focus:border-primary focus:ring-primary/20">
+                  <div className="flex items-center gap-2">
+                    <Filter className="w-4 h-4 text-gray-500" />
+                    <SelectValue placeholder="All Categories" />
+                  </div>
+                </SelectTrigger>
+                <SelectContent>
+                  {categories.map(category => (
+                    <SelectItem key={category.id} value={category.id}>
+                      {category.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
+
+          {/* Active Filters Display */}
+          {(selectedBranch !== 'all' || selectedCategory !== 'all' || searchQuery) && (
+            <div className="flex flex-wrap items-center gap-2 mt-4 pt-4 border-t border-gray-100">
+              <span className="text-sm font-medium text-gray-600">Active filters:</span>
+              {selectedBranch !== 'all' && (
+                <Badge variant="secondary" className="flex items-center gap-1">
+                  {branches.find(b => b.id === selectedBranch)?.name}
+                  <button
+                    onClick={() => setSelectedBranch('all')}
+                    className="ml-1 hover:bg-gray-300 rounded-full p-0.5"
+                  >
+                    ×
+                  </button>
+                </Badge>
+              )}
+              {selectedCategory !== 'all' && (
+                <Badge variant="secondary" className="flex items-center gap-1">
+                  {categories.find(c => c.id === selectedCategory)?.name}
+                  <button
+                    onClick={() => setSelectedCategory('all')}
+                    className="ml-1 hover:bg-gray-300 rounded-full p-0.5"
+                  >
+                    ×
+                  </button>
+                </Badge>
+              )}
+              {searchQuery && (
+                <Badge variant="secondary" className="flex items-center gap-1">
+                  "{searchQuery}"
+                  <button
+                    onClick={() => setSearchQuery('')}
+                    className="ml-1 hover:bg-gray-300 rounded-full p-0.5"
+                  >
+                    ×
+                  </button>
+                </Badge>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Services Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 mb-12">
           {filteredServices.map((service) => (
             <Link key={service.id} href={`/services/${service.id}`}>
-              <Card className="hover:shadow-xl transition-all duration-300 overflow-hidden hover:-translate-y-1 min-h-[400px] flex flex-col cursor-pointer">
-                <div className="relative overflow-hidden">
+              <Card className="group hover:shadow-2xl transition-all duration-500 overflow-hidden hover:-translate-y-2 h-full flex flex-col bg-white border-0 shadow-md hover:shadow-primary/10">
+                {/* Image Section */}
+                <div className="relative overflow-hidden aspect-[4/3]">
                   <img
                     src={service.image}
                     alt={`${service.name} service`}
-                    className="w-full h-48 object-cover hover:scale-110 transition-transform duration-700"
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
-                  <div className="absolute top-2 right-2">
-                    <Badge className="bg-white/90 text-primary font-semibold shadow-lg text-xs">
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-60 group-hover:opacity-40 transition-opacity duration-300"></div>
+
+                  {/* Category Badge */}
+                  <div className="absolute top-3 left-3">
+                    <Badge className="bg-white/95 text-primary font-semibold shadow-lg text-xs px-3 py-1 backdrop-blur-sm">
                       {categories.find(cat => cat.id === service.category)?.name}
                     </Badge>
                   </div>
-                </div>
-                <CardHeader className="pb-3 flex-grow">
-                  <div className="flex items-start justify-between">
-                    <div className="w-10 h-10 bg-secondary/10 rounded-full flex items-center justify-center">
-                      <service.icon className="w-5 h-5 text-secondary" />
-                    </div>
-                    <div className="flex items-center gap-1 text-sm text-gray-600">
-                      <Star className="w-4 h-4 fill-secondary text-secondary" />
+
+                  {/* Rating Badge */}
+                  <div className="absolute top-3 right-3">
+                    <div className="flex items-center gap-1 bg-black/70 text-white px-2 py-1 rounded-full text-xs font-medium backdrop-blur-sm">
+                      <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
                       {service.rating}
                     </div>
                   </div>
-                  <CardTitle className="text-lg text-primary font-bold">{service.name}</CardTitle>
-                  <div className="flex items-center gap-4 text-sm text-gray-600">
-                    <div className="flex items-center gap-1">
-                      <Clock className="w-4 h-4" />
-                      {service.duration}
+                </div>
+
+                {/* Content Section */}
+                <CardHeader className="pb-3 flex-grow space-y-3">
+                  {/* Service Icon and Title */}
+                  <div className="flex items-start justify-between">
+                    <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center group-hover:bg-primary/20 transition-colors duration-300">
+                      <service.icon className="w-6 h-6 text-primary" />
                     </div>
-                    <div className="text-sm text-gray-500">
-                      ({service.reviews} reviews)
+                    <div className="text-right">
+                      <div className="text-xs text-gray-500 font-medium">
+                        {service.reviews} reviews
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <CardTitle className="text-lg font-bold text-gray-900 group-hover:text-primary transition-colors duration-300 leading-tight">
+                      {service.name}
+                    </CardTitle>
+
+                    {/* Duration and Price Row */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1 text-sm text-gray-600">
+                        <Clock className="w-4 h-4 text-primary" />
+                        <span className="font-medium">{service.duration}</span>
+                      </div>
+                      <div className="text-xl font-bold text-secondary">
+                        {formatPrice(service.price)}
+                      </div>
                     </div>
                   </div>
                 </CardHeader>
+
                 <CardContent className="pt-0 mt-auto">
-                  <p className="text-gray-600 mb-4 text-sm leading-relaxed">{service.description}</p>
-                  <div className="flex items-center justify-between mb-4">
-                    <span className="text-2xl font-bold text-secondary">${service.price}</span>
-                    <div className="flex items-center gap-1 text-sm text-gray-500">
-                      <MapPin className="w-4 h-4" />
-                      {service.branches.length} branches
+                  <p className="text-gray-600 text-sm leading-relaxed mb-4 line-clamp-2">
+                    {service.description}
+                  </p>
+
+                  {/* Footer Info */}
+                  <div className="flex items-center justify-between text-xs text-gray-500 border-t border-gray-100 pt-3">
+                    <div className="flex items-center gap-1">
+                      <MapPin className="w-3 h-3" />
+                      <span>{service.branches.length} location{service.branches.length !== 1 ? 's' : ''}</span>
                     </div>
-                  </div>
-                  <div className="text-center text-sm text-gray-500">
-                    Click to view details
+                    <span className="text-primary font-medium group-hover:underline">
+                      View Details →
+                    </span>
                   </div>
                 </CardContent>
               </Card>
@@ -299,24 +408,83 @@ export default function ServicesPage() {
         </div>
 
         {filteredServices.length === 0 && (
-          <div className="text-center py-12">
-            <Scissors className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-            <h3 className="text-xl font-semibold text-gray-600 mb-2">No services found</h3>
-            <p className="text-gray-500">Try adjusting your filters or search query</p>
+          <div className="text-center py-16 px-4">
+            <div className="max-w-md mx-auto">
+              <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Scissors className="w-10 h-10 text-gray-400" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">No services found</h3>
+              <p className="text-gray-500 mb-6 leading-relaxed">
+                We couldn't find any services matching your criteria. Try adjusting your filters or search query.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setSelectedBranch('all');
+                    setSelectedCategory('all');
+                    setSearchQuery('');
+                  }}
+                  className="flex items-center gap-2"
+                >
+                  <Filter className="w-4 h-4" />
+                  Clear Filters
+                </Button>
+                <Button
+                  onClick={() => setSearchQuery('')}
+                  className="flex items-center gap-2"
+                >
+                  <Search className="w-4 h-4" />
+                  Browse All Services
+                </Button>
+              </div>
+            </div>
           </div>
         )}
 
         {/* Call to Action */}
-        <div className="bg-primary text-white rounded-lg p-8 text-center">
-          <h2 className="text-2xl font-serif font-bold mb-4">Ready to Book?</h2>
-          <p className="mb-6 max-w-2xl mx-auto">
-            Experience our premium grooming services at any of our locations
-          </p>
-          <BookingModal>
-            <Button size="lg" className="bg-secondary hover:bg-secondary/90 text-primary">
-              Book Your Appointment
-            </Button>
-          </BookingModal>
+        <div className="bg-gradient-to-r from-primary via-primary to-secondary text-white rounded-2xl p-6 sm:p-8 lg:p-12 text-center shadow-2xl">
+          <div className="max-w-4xl mx-auto">
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-serif font-bold mb-4 leading-tight">
+              Ready to Experience Premium Grooming?
+            </h2>
+            <p className="text-lg sm:text-xl text-white/90 mb-8 max-w-2xl mx-auto leading-relaxed">
+              Book your appointment today and discover why thousands of gentlemen trust us with their grooming needs
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+              <BookingModal>
+                <Button size="lg" className="bg-white text-primary hover:bg-gray-50 font-semibold px-8 py-3 text-base shadow-lg hover:shadow-xl transition-all duration-300">
+                  Book Your Appointment
+                </Button>
+              </BookingModal>
+
+              <Button
+                variant="outline"
+                size="lg"
+                className="border-white text-white hover:bg-white hover:text-primary font-semibold px-8 py-3 text-base"
+                onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+              >
+                Browse Services
+              </Button>
+            </div>
+
+            {/* Trust Indicators */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mt-12 pt-8 border-t border-white/20">
+              <div className="text-center">
+                <div className="text-2xl font-bold mb-1">4.8★</div>
+                <div className="text-sm text-white/80">Average Rating</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold mb-1">10K+</div>
+                <div className="text-sm text-white/80">Happy Customers</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold mb-1">5</div>
+                <div className="text-sm text-white/80">Premium Locations</div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

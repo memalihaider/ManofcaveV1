@@ -157,7 +157,7 @@ export default function SuperAdminMembership() {
     price: 0,
     duration: 1,
     benefits: [] as string[],
-    branchId: '', // Empty string = global membership
+    branchId: 'all', // 'all' = global membership
     isActive: true
   });
 
@@ -172,7 +172,7 @@ export default function SuperAdminMembership() {
     offerFor: 'single' as 'single' | 'series',
     image: '',
     membershipRequired: [] as MembershipTier[],
-    branchId: '', // Empty string = global offer
+    branchId: 'all', // 'all' = global offer
     validFrom: '',
     validTo: '',
     usageLimit: '',
@@ -188,7 +188,7 @@ export default function SuperAdminMembership() {
     maximumDiscount: '',
     applicableCategories: [] as string[],
     membershipRequired: [] as MembershipTier[],
-    branchId: '', // Empty string = global promo
+    branchId: 'all', // 'all' = global promo
     validFrom: '',
     validTo: '',
     usageLimit: '',
@@ -1440,7 +1440,7 @@ export default function SuperAdminMembership() {
                   <SelectValue placeholder="Select branch (optional)" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Branches (Global)</SelectItem>
+                  <SelectItem value="all">All Branches (Global)</SelectItem>
                   {mockBranches.map(branch => (
                     <SelectItem key={branch.id} value={branch.id}>
                       {branch.name}

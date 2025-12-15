@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -10,7 +11,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
-import { Settings, User, Bell, Shield, Palette, Database, Mail, Phone, MapPin, Clock, Save, RefreshCw, Plus, Trash2, MessageSquare, FileText, CreditCard } from "lucide-react";
+import { Settings, User, Bell, Shield, Palette, Database, Mail, Phone, MapPin, Clock, Save, RefreshCw, Plus, Trash2, MessageSquare, FileText, CreditCard, Upload, Download } from "lucide-react";
 import { PermissionProtectedRoute, PermissionProtectedSection } from "@/components/PermissionProtected";
 import { AdminSidebar, AdminMobileSidebar } from "@/components/admin/AdminSidebar";
 import { cn } from "@/lib/utils";
@@ -110,6 +111,117 @@ We are not liable for any indirect or consequential damages arising from our ser
 For any questions, please contact us at admin@luxurybarbershop.com`
   });
 
+  // User Management State
+  const [users, setUsers] = useState([
+    {
+      id: 1,
+      name: "John Doe",
+      email: "john@luxurybarbershop.com",
+      role: "super_admin",
+      branch: "All Branches",
+      status: "active",
+      lastLogin: "2025-12-15 10:30 AM",
+      permissions: ["all"]
+    },
+    {
+      id: 2,
+      name: "Jane Smith",
+      email: "jane@branch1.com",
+      role: "branch_admin",
+      branch: "Downtown Branch",
+      status: "active",
+      lastLogin: "2025-12-14 2:15 PM",
+      permissions: ["appointments.view", "staff.manage", "services.view"]
+    },
+    {
+      id: 3,
+      name: "Mike Johnson",
+      email: "mike@branch2.com",
+      role: "branch_admin",
+      branch: "Uptown Branch",
+      status: "inactive",
+      lastLogin: "2025-12-10 9:45 AM",
+      permissions: ["appointments.view", "services.view"]
+    }
+  ]);
+
+  // Audit Logs State
+  const [auditLogs, setAuditLogs] = useState([
+    {
+      id: 1,
+      timestamp: "2025-12-15 10:30:15",
+      user: "John Doe",
+      action: "User Login",
+      resource: "Authentication",
+      details: "Successful login from IP 192.168.1.100",
+      ipAddress: "192.168.1.100",
+      userAgent: "Chrome 131.0.0.0"
+    },
+    {
+      id: 2,
+      timestamp: "2025-12-15 10:25:30",
+      user: "Jane Smith",
+      action: "Created Appointment",
+      resource: "Appointments",
+      details: "Created appointment for customer ID 12345",
+      ipAddress: "192.168.1.101",
+      userAgent: "Safari 17.1"
+    },
+    {
+      id: 3,
+      timestamp: "2025-12-15 10:20:45",
+      user: "John Doe",
+      action: "Updated Settings",
+      resource: "System Settings",
+      details: "Modified business information settings",
+      ipAddress: "192.168.1.100",
+      userAgent: "Chrome 131.0.0.0"
+    },
+    {
+      id: 4,
+      timestamp: "2025-12-15 10:15:20",
+      user: "Mike Johnson",
+      action: "Deleted Service",
+      resource: "Services",
+      details: "Removed service 'Hair Treatment' from branch inventory",
+      ipAddress: "192.168.1.102",
+      userAgent: "Firefox 133.0"
+    },
+    {
+      id: 5,
+      timestamp: "2025-12-15 10:10:10",
+      user: "Jane Smith",
+      action: "Password Reset",
+      resource: "User Management",
+      details: "Requested password reset for user account",
+      ipAddress: "192.168.1.101",
+      userAgent: "Safari 17.1"
+    }
+  ]);
+
+  // Branding State
+  const [branding, setBranding] = useState({
+    companyName: "Luxury Barbershop Chain",
+    logo: "/logo.png",
+    primaryColor: "#1a1a1a",
+    secondaryColor: "#d4af37",
+    accentColor: "#8b4513",
+    fontFamily: "serif",
+    favicon: "/favicon.ico",
+    customCss: "",
+    emailTemplate: "luxury",
+    smsSignature: "Luxury Barbershop"
+  });
+
+  // Data Import/Export State
+  const [importExport, setImportExport] = useState({
+    exportFormat: "csv",
+    includeImages: true,
+    dateRange: "all",
+    selectedTables: ["customers", "appointments", "services"],
+    compression: "zip"
+  });
+
   const handleSave = () => {
     // In a real app, this would save to backend
     console.log('Settings saved:', settings);
@@ -133,7 +245,7 @@ For any questions, please contact us at admin@luxurybarbershop.com`
         {/* Main Content */}
         <div className={cn(
           "flex-1 flex flex-col transition-all duration-300 ease-in-out",
-          sidebarOpen ? "lg:ml-64" : "lg:ml-0"
+          sidebarOpen ? "lg:ml-0" : "lg:ml-0"
         )}>
           {/* Header */}
           <header className="bg-white shadow-sm border-b">
@@ -168,7 +280,7 @@ For any questions, please contact us at admin@luxurybarbershop.com`
           <div className="flex-1 overflow-auto">
             <div className="p-4 lg:p-8">
               <Tabs defaultValue="general" className="space-y-6">
-                <TabsList className="grid w-full grid-cols-8">
+                <TabsList className="grid w-full grid-cols-11">
                   <TabsTrigger value="general" className="flex items-center gap-2">
                     <Settings className="w-4 h-4" />
                     General
@@ -183,7 +295,15 @@ For any questions, please contact us at admin@luxurybarbershop.com`
                   </TabsTrigger>
                   <TabsTrigger value="appearance" className="flex items-center gap-2">
                     <Palette className="w-4 h-4" />
-                    Appearance
+                    Branding
+                  </TabsTrigger>
+                  <TabsTrigger value="users" className="flex items-center gap-2">
+                    <User className="w-4 h-4" />
+                    Users
+                  </TabsTrigger>
+                  <TabsTrigger value="audit" className="flex items-center gap-2">
+                    <FileText className="w-4 h-4" />
+                    Audit Logs
                   </TabsTrigger>
                   <TabsTrigger value="system" className="flex items-center gap-2">
                     <Database className="w-4 h-4" />
@@ -199,6 +319,12 @@ For any questions, please contact us at admin@luxurybarbershop.com`
                     <TabsTrigger value="sms" className="flex items-center gap-2">
                       <MessageSquare className="w-4 h-4" />
                       SMS Content
+                    </TabsTrigger>
+                  </PermissionProtectedSection>
+                  <PermissionProtectedSection requiredPermissions={['data_import.view']}>
+                    <TabsTrigger value="data" className="flex items-center gap-2">
+                      <Database className="w-4 h-4" />
+                      Data Import/Export
                     </TabsTrigger>
                   </PermissionProtectedSection>
                   <PermissionProtectedSection requiredPermissions={['terms.view']}>
@@ -478,70 +604,137 @@ For any questions, please contact us at admin@luxurybarbershop.com`
                   </Card>
                 </TabsContent>
 
-                {/* Appearance Settings */}
+                {/* Branding Settings */}
                 <TabsContent value="appearance">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Appearance & Branding</CardTitle>
-                      <CardDescription>Customize the look and feel of your system</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-6">
-                      <div className="space-y-4">
+                  <div className="space-y-6">
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>White-Label Branding</CardTitle>
+                        <CardDescription>Customize your company branding across all locations</CardDescription>
+                      </CardHeader>
+                      <CardContent className="space-y-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div className="space-y-2">
+                            <Label htmlFor="companyName">Company Name</Label>
+                            <Input
+                              id="companyName"
+                              value={branding.companyName}
+                              onChange={(e) => setBranding({...branding, companyName: e.target.value})}
+                              placeholder="Enter your company name"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="smsSignature">SMS Signature</Label>
+                            <Input
+                              id="smsSignature"
+                              value={branding.smsSignature}
+                              onChange={(e) => setBranding({...branding, smsSignature: e.target.value})}
+                              placeholder="Your SMS signature"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="space-y-4">
+                          <Label>Logo Upload</Label>
+                          <div className="flex items-center gap-4">
+                            <div className="w-20 h-20 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center">
+                              <Upload className="w-8 h-8 text-gray-400" />
+                            </div>
+                            <div>
+                              <p className="text-sm text-gray-600">Upload your company logo</p>
+                              <p className="text-xs text-gray-500">PNG, JPG up to 2MB</p>
+                              <Button variant="outline" size="sm" className="mt-2">
+                                Choose File
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+
+                        <Separator />
+
+                        <div className="space-y-4">
+                          <h3 className="text-lg font-medium">Color Scheme</h3>
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div className="space-y-2">
+                              <Label htmlFor="primaryColor">Primary Color</Label>
+                              <Input
+                                id="primaryColor"
+                                type="color"
+                                value={branding.primaryColor}
+                                onChange={(e) => setBranding({...branding, primaryColor: e.target.value})}
+                                className="w-full h-10"
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label htmlFor="secondaryColor">Secondary Color</Label>
+                              <Input
+                                id="secondaryColor"
+                                type="color"
+                                value={branding.secondaryColor}
+                                onChange={(e) => setBranding({...branding, secondaryColor: e.target.value})}
+                                className="w-full h-10"
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label htmlFor="accentColor">Accent Color</Label>
+                              <Input
+                                id="accentColor"
+                                type="color"
+                                value={branding.accentColor}
+                                onChange={(e) => setBranding({...branding, accentColor: e.target.value})}
+                                className="w-full h-10"
+                              />
+                            </div>
+                          </div>
+                        </div>
+
                         <div className="space-y-2">
-                          <Label htmlFor="theme">Theme</Label>
-                          <Select value={settings.theme} onValueChange={(value) => handleInputChange('theme', value)}>
+                          <Label htmlFor="fontFamily">Font Family</Label>
+                          <Select value={branding.fontFamily} onValueChange={(value) => setBranding({...branding, fontFamily: value})}>
                             <SelectTrigger>
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="luxury">Luxury (Gold & Black)</SelectItem>
+                              <SelectItem value="serif">Serif (Classic)</SelectItem>
+                              <SelectItem value="sans-serif">Sans Serif (Modern)</SelectItem>
+                              <SelectItem value="monospace">Monospace</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="emailTemplate">Email Template Style</Label>
+                          <Select value={branding.emailTemplate} onValueChange={(value) => setBranding({...branding, emailTemplate: value})}>
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="luxury">Luxury</SelectItem>
                               <SelectItem value="modern">Modern</SelectItem>
                               <SelectItem value="classic">Classic</SelectItem>
                               <SelectItem value="minimal">Minimal</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
-                      </div>
 
-                      <Separator />
-
-                      <div className="space-y-4">
-                        <h3 className="text-lg font-medium">Color Scheme</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                          <div className="space-y-2">
-                            <Label htmlFor="primaryColor">Primary Color</Label>
-                            <Input
-                              id="primaryColor"
-                              type="color"
-                              value={settings.primaryColor}
-                              onChange={(e) => handleInputChange('primaryColor', e.target.value)}
-                              className="w-full h-10"
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="secondaryColor">Secondary Color</Label>
-                            <Input
-                              id="secondaryColor"
-                              type="color"
-                              value={settings.secondaryColor}
-                              onChange={(e) => handleInputChange('secondaryColor', e.target.value)}
-                              className="w-full h-10"
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="accentColor">Accent Color</Label>
-                            <Input
-                              id="accentColor"
-                              type="color"
-                              value={settings.accentColor}
-                              onChange={(e) => handleInputChange('accentColor', e.target.value)}
-                              className="w-full h-10"
-                            />
-                          </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="customCss">Custom CSS</Label>
+                          <Textarea
+                            id="customCss"
+                            value={branding.customCss}
+                            onChange={(e) => setBranding({...branding, customCss: e.target.value})}
+                            placeholder="Enter custom CSS for advanced styling"
+                            rows={4}
+                          />
                         </div>
-                      </div>
-                    </CardContent>
-                  </Card>
+
+                        <Button className="w-full">
+                          <Save className="w-4 h-4 mr-2" />
+                          Save Branding Settings
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  </div>
                 </TabsContent>
 
                 {/* System Settings */}
@@ -976,6 +1169,245 @@ For any questions, please contact us at admin@luxurybarbershop.com`
                     </CardContent>
                   </Card>
                 </TabsContent>
+                </PermissionProtectedSection>
+
+                {/* User Management */}
+                <TabsContent value="users">
+                  <div className="space-y-6">
+                    <Card>
+                      <CardHeader>
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <CardTitle>User Management</CardTitle>
+                            <CardDescription>Manage users, roles, and permissions across all branches</CardDescription>
+                          </div>
+                          <Button>
+                            <Plus className="w-4 h-4 mr-2" />
+                            Add User
+                          </Button>
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-4">
+                          {users.map((user) => (
+                            <Card key={user.id} className="p-4">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-4">
+                                  <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                                    <User className="w-5 h-5 text-blue-600" />
+                                  </div>
+                                  <div>
+                                    <h3 className="font-semibold">{user.name}</h3>
+                                    <p className="text-sm text-gray-600">{user.email}</p>
+                                    <div className="flex items-center gap-2 mt-1">
+                                      <Badge variant={user.role === 'super_admin' ? 'default' : 'secondary'}>
+                                        {user.role.replace('_', ' ')}
+                                      </Badge>
+                                      <span className="text-xs text-gray-500">{user.branch}</span>
+                                      <Badge variant={user.status === 'active' ? 'default' : 'secondary'}>
+                                        {user.status}
+                                      </Badge>
+                                    </div>
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <span className="text-xs text-gray-500">Last login: {user.lastLogin}</span>
+                                  <Button variant="outline" size="sm">
+                                    <Settings className="w-4 h-4" />
+                                  </Button>
+                                </div>
+                              </div>
+                            </Card>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                </TabsContent>
+
+                {/* Audit Logs */}
+                <TabsContent value="audit">
+                  <div className="space-y-6">
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Audit Logs</CardTitle>
+                        <CardDescription>Track all system activities and user actions for accountability</CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-4">
+                          <div className="flex gap-4">
+                            <Input placeholder="Search logs..." className="flex-1" />
+                            <Select defaultValue="all">
+                              <SelectTrigger className="w-48">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="all">All Actions</SelectItem>
+                                <SelectItem value="login">Login</SelectItem>
+                                <SelectItem value="create">Create</SelectItem>
+                                <SelectItem value="update">Update</SelectItem>
+                                <SelectItem value="delete">Delete</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <Button variant="outline">
+                              <RefreshCw className="w-4 h-4 mr-2" />
+                              Refresh
+                            </Button>
+                          </div>
+
+                          <div className="space-y-2">
+                            {auditLogs.map((log) => (
+                              <Card key={log.id} className="p-4">
+                                <div className="flex items-start justify-between">
+                                  <div className="flex-1">
+                                    <div className="flex items-center gap-2 mb-1">
+                                      <span className="font-medium">{log.user}</span>
+                                      <Badge variant="outline">{log.action}</Badge>
+                                      <span className="text-sm text-gray-500">{log.resource}</span>
+                                    </div>
+                                    <p className="text-sm text-gray-600 mb-2">{log.details}</p>
+                                    <div className="flex items-center gap-4 text-xs text-gray-500">
+                                      <span>{log.timestamp}</span>
+                                      <span>IP: {log.ipAddress}</span>
+                                      <span>{log.userAgent}</span>
+                                    </div>
+                                  </div>
+                                </div>
+                              </Card>
+                            ))}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                </TabsContent>
+
+                {/* Data Import/Export */}
+                <PermissionProtectedSection requiredPermissions={['data_import.view']}>
+                  <TabsContent value="data">
+                    <div className="space-y-6">
+                      <Card>
+                        <CardHeader>
+                          <CardTitle>Data Import & Export</CardTitle>
+                          <CardDescription>Migrate data in and out of the system easily</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-6">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <Card className="p-6">
+                              <div className="text-center space-y-4">
+                                <Upload className="w-12 h-12 text-blue-600 mx-auto" />
+                                <div>
+                                  <h3 className="font-semibold">Import Data</h3>
+                                  <p className="text-sm text-gray-600">Upload CSV or Excel files to import data</p>
+                                </div>
+                                <Button variant="outline" className="w-full">
+                                  <Upload className="w-4 h-4 mr-2" />
+                                  Choose File
+                                </Button>
+                              </div>
+                            </Card>
+
+                            <Card className="p-6">
+                              <div className="text-center space-y-4">
+                                <Download className="w-12 h-12 text-green-600 mx-auto" />
+                                <div>
+                                  <h3 className="font-semibold">Export Data</h3>
+                                  <p className="text-sm text-gray-600">Download your data in various formats</p>
+                                </div>
+                                <Button className="w-full">
+                                  <Download className="w-4 h-4 mr-2" />
+                                  Export Data
+                                </Button>
+                              </div>
+                            </Card>
+                          </div>
+
+                          <Separator />
+
+                          <div className="space-y-4">
+                            <h3 className="text-lg font-medium">Export Settings</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div className="space-y-2">
+                                <Label>Export Format</Label>
+                                <Select value={importExport.exportFormat} onValueChange={(value) => setImportExport({...importExport, exportFormat: value})}>
+                                  <SelectTrigger>
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="csv">CSV</SelectItem>
+                                    <SelectItem value="excel">Excel</SelectItem>
+                                    <SelectItem value="json">JSON</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              <div className="space-y-2">
+                                <Label>Date Range</Label>
+                                <Select value={importExport.dateRange} onValueChange={(value) => setImportExport({...importExport, dateRange: value})}>
+                                  <SelectTrigger>
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="all">All Time</SelectItem>
+                                    <SelectItem value="last_30">Last 30 Days</SelectItem>
+                                    <SelectItem value="last_90">Last 90 Days</SelectItem>
+                                    <SelectItem value="last_year">Last Year</SelectItem>
+                                    <SelectItem value="custom">Custom Range</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            </div>
+
+                            <div className="space-y-2">
+                              <Label>Data Tables to Export</Label>
+                              <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                                {[
+                                  { id: 'customers', label: 'Customers' },
+                                  { id: 'appointments', label: 'Appointments' },
+                                  { id: 'services', label: 'Services' },
+                                  { id: 'staff', label: 'Staff' },
+                                  { id: 'products', label: 'Products' },
+                                  { id: 'branches', label: 'Branches' },
+                                  { id: 'analytics', label: 'Analytics' }
+                                ].map((table) => (
+                                  <div key={table.id} className="flex items-center space-x-2">
+                                    <input
+                                      type="checkbox"
+                                      id={table.id}
+                                      checked={importExport.selectedTables.includes(table.id)}
+                                      onChange={(e) => {
+                                        const newTables = e.target.checked
+                                          ? [...importExport.selectedTables, table.id]
+                                          : importExport.selectedTables.filter(t => t !== table.id);
+                                        setImportExport({...importExport, selectedTables: newTables});
+                                      }}
+                                      className="rounded"
+                                    />
+                                    <Label htmlFor={table.id} className="text-sm">{table.label}</Label>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+
+                            <div className="flex items-center space-x-2">
+                              <input
+                                type="checkbox"
+                                id="includeImages"
+                                checked={importExport.includeImages}
+                                onChange={(e) => setImportExport({...importExport, includeImages: e.target.checked})}
+                                className="rounded"
+                              />
+                              <Label htmlFor="includeImages">Include images and attachments</Label>
+                            </div>
+
+                            <Button className="w-full">
+                              <Download className="w-4 h-4 mr-2" />
+                              Start Export
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  </TabsContent>
                 </PermissionProtectedSection>
               </Tabs>
             </div>

@@ -126,7 +126,7 @@ export default function SignupPage() {
           <div className="w-16 h-16 bg-secondary rounded-full flex items-center justify-center mx-auto mb-4">
             <Scissors className="w-8 h-8 text-primary" />
           </div>
-          <CardTitle className="text-2xl font-serif text-primary">Premium Cuts</CardTitle>
+          <CardTitle className="text-2xl font-serif text-primary">Man of Cave</CardTitle>
           <CardDescription>Create your account to book appointments</CardDescription>
         </CardHeader>
         <CardContent>

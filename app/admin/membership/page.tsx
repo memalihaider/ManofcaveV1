@@ -8,8 +8,11 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   Gift,
   Tag,
@@ -35,7 +38,10 @@ import {
   FileText,
   Building,
   Settings,
-  Package
+  Package,
+  CheckCircle,
+  Scissors,
+  Clock
 } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -43,7 +49,31 @@ import { AdminSidebar, AdminMobileSidebar } from "@/components/admin/AdminSideba
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
-import { useServicesStore } from '@/stores/services.store';
+import { useServicesStore, type ServicePackage } from '@/stores/services.store';
+import { useCurrencyStore } from "@/stores/currency.store";
+import { CurrencySwitcher } from "@/components/ui/currency-switcher";
+
+interface GiftCard {
+  id: string;
+  code: string;
+  balance: number;
+  initialAmount: number;
+  issuedTo?: string;
+  issuedBy: string;
+  issuedDate: string;
+  expiryDate?: string;
+  isActive: boolean;
+  transactions: GiftCardTransaction[];
+}
+
+interface GiftCardTransaction {
+  id: string;
+  type: 'issued' | 'redeemed' | 'refunded';
+  amount: number;
+  date: string;
+  description: string;
+  staff?: string;
+}
 import {
   useMembershipStore,
   type Offer,
@@ -116,6 +146,7 @@ export default function AdminMembership() {
   const [promoDialogOpen, setPromoDialogOpen] = useState(false);
   const [loyaltyDialogOpen, setLoyaltyDialogOpen] = useState(false);
   const [cashbackDialogOpen, setCashbackDialogOpen] = useState(false);
+  const [packageDialogOpen, setPackageDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const [selectedItem, setSelectedItem] = useState<any>(null);
@@ -177,6 +208,79 @@ export default function AdminMembership() {
     validTo: '',
     isActive: true
   });
+
+  const [packageForm, setPackageForm] = useState({
+    name: '',
+    description: '',
+    selectedServices: [] as string[],
+    discountPercentage: 15,
+    branches: [] as string[],
+  });
+
+  // Gift Card state
+  const { formatCurrency } = useCurrencyStore();
+  const [giftCards, setGiftCards] = useState<GiftCard[]>([
+    {
+      id: '1',
+      code: 'GIFT001',
+      balance: 50,
+      initialAmount: 100,
+      issuedTo: 'John Doe',
+      issuedBy: 'Admin',
+      issuedDate: '2025-01-15',
+      expiryDate: '2026-01-15',
+      isActive: true,
+      transactions: [
+        { id: '1', type: 'issued', amount: 100, date: '2025-01-15', description: 'Gift card issued', staff: 'Admin' },
+        { id: '2', type: 'redeemed', amount: 50, date: '2025-12-10', description: 'Partial redemption for haircut', staff: 'Mike Johnson' }
+      ]
+    },
+    {
+      id: '2',
+      code: 'GIFT002',
+      balance: 100,
+      initialAmount: 100,
+      issuedTo: 'Jane Smith',
+      issuedBy: 'Admin',
+      issuedDate: '2025-02-20',
+      isActive: true,
+      transactions: [
+        { id: '3', type: 'issued', amount: 100, date: '2025-02-20', description: 'Gift card issued', staff: 'Admin' }
+      ]
+    },
+    {
+      id: '3',
+      code: 'GIFT003',
+      balance: 0,
+      initialAmount: 50,
+      issuedTo: 'Bob Johnson',
+      issuedBy: 'Admin',
+      issuedDate: '2025-03-10',
+      expiryDate: '2026-03-10',
+      isActive: false,
+      transactions: [
+        { id: '4', type: 'issued', amount: 50, date: '2025-03-10', description: 'Gift card issued', staff: 'Admin' },
+        { id: '5', type: 'redeemed', amount: 50, date: '2025-11-15', description: 'Full redemption for styling', staff: 'Emma Davis' }
+      ]
+    }
+  ]);
+
+  const [giftCardSearchTerm, setGiftCardSearchTerm] = useState('');
+  const [giftCardStatusFilter, setGiftCardStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
+  const [showCreateGiftCardDialog, setShowCreateGiftCardDialog] = useState(false);
+  const [showViewGiftCardDialog, setShowViewGiftCardDialog] = useState(false);
+  const [selectedGiftCard, setSelectedGiftCard] = useState<GiftCard | null>(null);
+
+  const [giftCardFormData, setGiftCardFormData] = useState({
+    amount: '',
+    issuedTo: '',
+    expiryDate: '',
+    notes: ''
+  });
+
+  const { packages, addPackage, getPackagesByBranch } = useServicesStore();
+  const availableServices = getServicesByBranch(adminBranchId);
+  const branchPackages = getPackagesByBranch(adminBranchId);
 
   const resetForms = () => {
     setOfferForm({
@@ -437,6 +541,145 @@ export default function AdminMembership() {
     resetForms();
   };
 
+  const handleCreatePackage = () => {
+    if (!packageForm.name.trim() || packageForm.selectedServices.length === 0) return;
+
+    const selectedServiceObjects = availableServices.filter(s =>
+      packageForm.selectedServices.includes(s.id)
+    );
+
+    const totalPrice = selectedServiceObjects.reduce((sum, s) => sum + (s.price || 0), 0);
+    const discountedPrice = totalPrice * (1 - packageForm.discountPercentage / 100);
+    const totalDuration = selectedServiceObjects.reduce((sum, s) => sum + (s.duration || 0), 0);
+
+    const packageData = {
+      name: packageForm.name,
+      description: packageForm.description,
+      services: selectedServiceObjects,
+      totalPrice,
+      discountedPrice,
+      discountPercentage: packageForm.discountPercentage,
+      duration: totalDuration,
+      branches: packageForm.branches.length > 0 ? packageForm.branches : [adminBranchId],
+      isActive: true
+    };
+
+    addPackage(packageData);
+
+    setPackageDialogOpen(false);
+    setPackageForm({
+      name: '',
+      description: '',
+      selectedServices: [],
+      discountPercentage: 15,
+      branches: [],
+    });
+  };
+
+  const handleViewPackage = (pkg: ServicePackage) => {
+    // For now, just show an alert. In a real app, you'd open a detailed view dialog
+    alert(`Package: ${pkg.name}\nServices: ${pkg.services.length}\nDiscount: ${pkg.discountPercentage}%\nPrice: $${pkg.discountedPrice.toFixed(2)}`);
+  };
+
+  const handleEditPackage = (pkg: ServicePackage) => {
+    // For now, just show an alert. In a real app, you'd open an edit dialog
+    alert(`Edit functionality for ${pkg.name} would be implemented here.`);
+  };
+
+  // Gift Card handlers
+  const filteredGiftCards = giftCards.filter(card => {
+    const matchesSearch = card.code.toLowerCase().includes(giftCardSearchTerm.toLowerCase()) ||
+                         (card.issuedTo?.toLowerCase().includes(giftCardSearchTerm.toLowerCase()));
+    const matchesStatus = giftCardStatusFilter === 'all' ||
+                         (giftCardStatusFilter === 'active' && card.isActive) ||
+                         (giftCardStatusFilter === 'inactive' && !card.isActive);
+    return matchesSearch && matchesStatus;
+  });
+
+  const generateGiftCardCode = () => {
+    return 'GIFT' + Math.random().toString(36).substr(2, 6).toUpperCase();
+  };
+
+  const handleCreateGiftCard = () => {
+    const amount = parseFloat(giftCardFormData.amount);
+    if (!amount || amount <= 0) {
+      alert('Please enter a valid amount');
+      return;
+    }
+
+    const newCard: GiftCard = {
+      id: Date.now().toString(),
+      code: generateGiftCardCode(),
+      balance: amount,
+      initialAmount: amount,
+      issuedTo: giftCardFormData.issuedTo || undefined,
+      issuedBy: 'Admin', // In real app, get from auth
+      issuedDate: new Date().toISOString().split('T')[0],
+      expiryDate: giftCardFormData.expiryDate || undefined,
+      isActive: true,
+      transactions: [{
+        id: Date.now().toString(),
+        type: 'issued',
+        amount,
+        date: new Date().toISOString(),
+        description: giftCardFormData.notes || 'Gift card issued',
+        staff: 'Admin'
+      }]
+    };
+
+    setGiftCards(prev => [...prev, newCard]);
+    setGiftCardFormData({ amount: '', issuedTo: '', expiryDate: '', notes: '' });
+    setShowCreateGiftCardDialog(false);
+  };
+
+  const handleViewGiftCard = (card: GiftCard) => {
+    setSelectedGiftCard(card);
+    setShowViewGiftCardDialog(true);
+  };
+
+  const handleDeactivateGiftCard = (cardId: string) => {
+    setGiftCards(prev => prev.map(card =>
+      card.id === cardId ? { ...card, isActive: false } : card
+    ));
+  };
+
+  const handleRefundGiftCard = (cardId: string, amount: number) => {
+    setGiftCards(prev => prev.map(card => {
+      if (card.id === cardId) {
+        const newBalance = Math.min(card.balance + amount, card.initialAmount);
+        const transaction: GiftCardTransaction = {
+          id: Date.now().toString(),
+          type: 'refunded',
+          amount,
+          date: new Date().toISOString(),
+          description: 'Refund added to gift card',
+          staff: 'Admin'
+        };
+        return {
+          ...card,
+          balance: newBalance,
+          isActive: newBalance > 0,
+          transactions: [...card.transactions, transaction]
+        };
+      }
+      return card;
+    }));
+  };
+
+  const getGiftCardStatusColor = (card: GiftCard) => {
+    if (!card.isActive) return 'bg-gray-100 text-gray-800';
+    if (card.balance === 0) return 'bg-red-100 text-red-800';
+    if (card.balance < card.initialAmount * 0.2) return 'bg-yellow-100 text-yellow-800';
+    return 'bg-green-100 text-green-800';
+  };
+
+  const getGiftCardStatusText = (card: GiftCard) => {
+    if (!card.isActive) return 'Inactive';
+    if (card.balance === 0) return 'Used';
+    if (card.balance < card.initialAmount * 0.2) return 'Low Balance';
+    return 'Active';
+  };
+
   const openEditDialog = (item: any, type: typeof dialogType) => {
     setSelectedItem(item);
     setDialogType(type);
@@ -575,7 +818,7 @@ export default function AdminMembership() {
           {/* Content */}
           <div className="flex-1 overflow-auto p-6">
             <Tabs defaultValue="offers" className="space-y-6">
-              <TabsList className="grid w-full grid-cols-2 md:grid-cols-4">
+              <TabsList className="grid w-full grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
                 <TabsTrigger value="offers" className="flex items-center gap-2">
                   <Gift className="w-4 h-4" />
                   Offers
@@ -591,6 +834,14 @@ export default function AdminMembership() {
                 <TabsTrigger value="cashback" className="flex items-center gap-2">
                   <DollarSign className="w-4 h-4" />
                   Cashback
+                </TabsTrigger>
+                <TabsTrigger value="gift-cards" className="flex items-center gap-2">
+                  <CreditCard className="w-4 h-4" />
+                  Gift Cards
+                </TabsTrigger>
+                <TabsTrigger value="packages" className="flex items-center gap-2">
+                  <Package className="w-4 h-4" />
+                  Packages
                 </TabsTrigger>
               </TabsList>
 
@@ -968,6 +1219,325 @@ export default function AdminMembership() {
                     </Card>
                   ))}
                 </div>
+              </TabsContent>
+
+              {/* Gift Cards Tab */}
+              <TabsContent value="gift-cards" className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-2xl font-bold text-gray-900">Gift Cards Management</h2>
+                    <p className="text-gray-600">Manage gift cards and track their usage</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CurrencySwitcher />
+                    <Button
+                      onClick={() => setShowCreateGiftCardDialog(true)}
+                      className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Issue Gift Card
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Stats Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                  <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-purple-700">Total Cards</p>
+                          <p className="text-3xl font-bold text-purple-900">{giftCards.length}</p>
+                        </div>
+                        <CreditCard className="w-8 h-8 text-purple-600" />
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-green-700">Active Cards</p>
+                          <p className="text-3xl font-bold text-green-900">{giftCards.filter(c => c.isActive).length}</p>
+                        </div>
+                        <CheckCircle className="w-8 h-8 text-green-600" />
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-blue-700">Total Value</p>
+                          <p className="text-3xl font-bold text-blue-900">
+                            {formatCurrency(giftCards.reduce((sum, card) => sum + card.balance, 0))}
+                          </p>
+                        </div>
+                        <DollarSign className="w-8 h-8 text-blue-600" />
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200">
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-orange-700">Redeemed Value</p>
+                          <p className="text-3xl font-bold text-orange-900">
+                            {formatCurrency(giftCards.reduce((sum, card) => sum + (card.initialAmount - card.balance), 0))}
+                          </p>
+                        </div>
+                        <TrendingUp className="w-8 h-8 text-orange-600" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Filters */}
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="flex flex-col md:flex-row gap-4">
+                      <div className="flex-1">
+                        <div className="relative">
+                          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                          <Input
+                            placeholder="Search by code or customer name..."
+                            value={giftCardSearchTerm}
+                            onChange={(e) => setGiftCardSearchTerm(e.target.value)}
+                            className="pl-10"
+                          />
+                        </div>
+                      </div>
+                      <Select value={giftCardStatusFilter} onValueChange={(value: 'all' | 'active' | 'inactive') => setGiftCardStatusFilter(value)}>
+                        <SelectTrigger className="w-48">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Cards</SelectItem>
+                          <SelectItem value="active">Active Only</SelectItem>
+                          <SelectItem value="inactive">Inactive Only</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Gift Cards Table */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Gift Cards</CardTitle>
+                    <CardDescription>
+                      Manage issued gift cards and track their usage
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Code</TableHead>
+                          <TableHead>Customer</TableHead>
+                          <TableHead>Balance</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead>Issued Date</TableHead>
+                          <TableHead>Expiry Date</TableHead>
+                          <TableHead>Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {filteredGiftCards.map((card) => (
+                          <TableRow key={card.id}>
+                            <TableCell className="font-mono font-medium">{card.code}</TableCell>
+                            <TableCell>{card.issuedTo || 'Not assigned'}</TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-2">
+                                <span className="font-medium">{formatCurrency(card.balance)}</span>
+                                {card.balance < card.initialAmount && (
+                                  <span className="text-sm text-gray-500">
+                                    of {formatCurrency(card.initialAmount)}
+                                  </span>
+                                )}
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <Badge className={getGiftCardStatusColor(card)}>
+                                {getGiftCardStatusText(card)}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>{new Date(card.issuedDate).toLocaleDateString()}</TableCell>
+                            <TableCell>
+                              {card.expiryDate ? new Date(card.expiryDate).toLocaleDateString() : 'No expiry'}
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-2">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleViewGiftCard(card)}
+                                >
+                                  <Eye className="w-4 h-4" />
+                                </Button>
+                                {card.isActive && (
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleDeactivateGiftCard(card.id)}
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </Button>
+                                )}
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              {/* Packages Tab */}
+              <TabsContent value="packages" className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-2xl font-bold text-gray-900">Service Packages</h2>
+                    <p className="text-gray-600">Create and manage discounted service packages</p>
+                  </div>
+                  <Button
+                    onClick={() => setPackageDialogOpen(true)}
+                    className="bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Create Package
+                  </Button>
+                </div>
+
+                {/* Package Stats */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <Card>
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-gray-600">Total Packages</p>
+                          <p className="text-2xl font-bold">{packages.length}</p>
+                        </div>
+                        <Package className="w-8 h-8 text-blue-600" />
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-gray-600">Active Packages</p>
+                          <p className="text-2xl font-bold">{packages.filter(p => p.isActive).length}</p>
+                        </div>
+                        <CheckCircle className="w-8 h-8 text-green-600" />
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-gray-600">Avg. Discount</p>
+                          <p className="text-2xl font-bold">
+                            {packages.length > 0
+                              ? Math.round(packages.reduce((sum, p) => sum + p.discountPercentage, 0) / packages.length)
+                              : 0}%
+                          </p>
+                        </div>
+                        <Percent className="w-8 h-8 text-orange-600" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Packages List */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Packages</CardTitle>
+                    <CardDescription>
+                      Manage your service packages and their discounts
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {packages.length === 0 ? (
+                      <div className="text-center py-12">
+                        <Package className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                        <h3 className="text-lg font-medium text-gray-900 mb-2">No Packages Created</h3>
+                        <p className="text-gray-600 mb-4">
+                          Create your first service package to offer discounted bundles to customers.
+                        </p>
+                        <Button onClick={() => setPackageDialogOpen(true)}>
+                          <Plus className="w-4 h-4 mr-2" />
+                          Create First Package
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {packages.map((pkg) => (
+                          <Card key={pkg.id} className="border-l-4 border-l-green-500">
+                            <CardContent className="p-6">
+                              <div className="flex items-center justify-between">
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-3 mb-2">
+                                    <h3 className="text-lg font-semibold">{pkg.name}</h3>
+                                    <Badge variant={pkg.isActive ? "default" : "secondary"}>
+                                      {pkg.isActive ? "Active" : "Inactive"}
+                                    </Badge>
+                                  </div>
+                                  <p className="text-gray-600 mb-3">{pkg.description}</p>
+                                  <div className="flex items-center gap-6 text-sm text-gray-500">
+                                    <span className="flex items-center gap-1">
+                                      <Scissors className="w-4 h-4" />
+                                      {pkg.services.length} services
+                                    </span>
+                                    <span className="flex items-center gap-1">
+                                      <Clock className="w-4 h-4" />
+                                      {pkg.duration} min
+                                    </span>
+                                    <span className="flex items-center gap-1">
+                                      <Percent className="w-4 h-4" />
+                                      {pkg.discountPercentage}% off
+                                    </span>
+                                  </div>
+                                </div>
+                                <div className="text-right">
+                                  <div className="text-2xl font-bold text-green-600">
+                                    ${pkg.discountedPrice.toFixed(2)}
+                                  </div>
+                                  <div className="text-sm text-gray-500 line-through">
+                                    ${pkg.totalPrice.toFixed(2)}
+                                  </div>
+                                  <div className="flex gap-2 mt-3">
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => handleViewPackage(pkg)}
+                                    >
+                                      <Eye className="w-4 h-4" />
+                                    </Button>
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => handleEditPackage(pkg)}
+                                    >
+                                      <Edit className="w-4 h-4" />
+                                    </Button>
+                                  </div>
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
               </TabsContent>
             </Tabs>
           </div>
@@ -1849,6 +2419,310 @@ export default function AdminMembership() {
             </div>
           </SheetContent>
         </Sheet>
+
+        {/* Package Dialog */}
+        <Sheet open={packageDialogOpen} onOpenChange={setPackageDialogOpen}>
+          <SheetContent className="w-full sm:max-w-2xl overflow-y-auto">
+            <SheetHeader>
+              <SheetTitle className="flex items-center gap-2">
+                <Package className="w-5 h-5" />
+                Create Service Package
+              </SheetTitle>
+              <SheetDescription>
+                Create a discounted package with multiple services
+              </SheetDescription>
+            </SheetHeader>
+
+            <div className="space-y-6 mt-6">
+              <div className="space-y-2">
+                <Label htmlFor="package-name">Package Name *</Label>
+                <Input
+                  id="package-name"
+                  placeholder="e.g., Complete Grooming Package"
+                  value={packageForm.name}
+                  onChange={(e) => setPackageForm(prev => ({ ...prev, name: e.target.value }))}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="package-description">Description</Label>
+                <Textarea
+                  id="package-description"
+                  placeholder="Describe what's included in this package"
+                  value={packageForm.description}
+                  onChange={(e) => setPackageForm(prev => ({ ...prev, description: e.target.value }))}
+                  rows={3}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Select Services *</Label>
+                <div className="border rounded-lg p-4 max-h-60 overflow-y-auto">
+                  {availableServices.map((service) => (
+                    <div key={service.id} className="flex items-center space-x-2 mb-2">
+                      <Checkbox
+                        id={`service-${service.id}`}
+                        checked={packageForm.selectedServices.includes(service.id)}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setPackageForm(prev => ({
+                              ...prev,
+                              selectedServices: [...prev.selectedServices, service.id]
+                            }));
+                          } else {
+                            setPackageForm(prev => ({
+                              ...prev,
+                              selectedServices: prev.selectedServices.filter(id => id !== service.id)
+                            }));
+                          }
+                        }}
+                      />
+                      <Label htmlFor={`service-${service.id}`} className="flex-1">
+                        <div className="flex justify-between items-center">
+                          <span>{service.name}</span>
+                          <span className="text-sm text-gray-500">
+                            ${service.price?.toFixed(2)} • {service.duration}min
+                          </span>
+                        </div>
+                      </Label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="discount-percentage">Discount Percentage *</Label>
+                <Input
+                  id="discount-percentage"
+                  type="number"
+                  min="0"
+                  max="100"
+                  placeholder="15"
+                  value={packageForm.discountPercentage}
+                  onChange={(e) => setPackageForm(prev => ({
+                    ...prev,
+                    discountPercentage: parseInt(e.target.value) || 0
+                  }))}
+                />
+              </div>
+
+              {/* Package Summary */}
+              {packageForm.selectedServices.length > 0 && (
+                <Card className="bg-gray-50">
+                  <CardContent className="p-4">
+                    <h4 className="font-medium mb-2">Package Summary</h4>
+                    <div className="space-y-1 text-sm">
+                      <div className="flex justify-between">
+                        <span>Services selected:</span>
+                        <span>{packageForm.selectedServices.length}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Total price:</span>
+                        <span>
+                          ${availableServices
+                            .filter(s => packageForm.selectedServices.includes(s.id))
+                            .reduce((sum, s) => sum + (s.price || 0), 0)
+                            .toFixed(2)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Discount ({packageForm.discountPercentage}%):</span>
+                        <span className="text-green-600">
+                          -${(availableServices
+                            .filter(s => packageForm.selectedServices.includes(s.id))
+                            .reduce((sum, s) => sum + (s.price || 0), 0) * packageForm.discountPercentage / 100)
+                            .toFixed(2)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between font-medium border-t pt-1">
+                        <span>Final price:</span>
+                        <span className="text-green-600">
+                          ${(
+                            availableServices
+                              .filter(s => packageForm.selectedServices.includes(s.id))
+                              .reduce((sum, s) => sum + (s.price || 0), 0) *
+                            (1 - Number(packageForm.discountPercentage || 0) / 100)
+                          ).toFixed(2)}
+                        </span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              <div className="flex justify-end gap-3 pt-4">
+                <Button variant="outline" onClick={() => setPackageDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleCreatePackage}
+                  disabled={!packageForm.name.trim() || packageForm.selectedServices.length === 0}
+                >
+                  Create Package
+                </Button>
+              </div>
+            </div>
+          </SheetContent>
+        </Sheet>
+
+        {/* Create Gift Card Dialog */}
+        <Dialog open={showCreateGiftCardDialog} onOpenChange={setShowCreateGiftCardDialog}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Issue New Gift Card</DialogTitle>
+              <DialogDescription>
+                Create a new gift card with specified value and details.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="gift-card-amount">Amount *</Label>
+                  <Input
+                    id="gift-card-amount"
+                    type="number"
+                    step="0.01"
+                    placeholder="100.00"
+                    value={giftCardFormData.amount}
+                    onChange={(e) => setGiftCardFormData(prev => ({ ...prev, amount: e.target.value }))}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="gift-card-customer">Customer Name</Label>
+                  <Input
+                    id="gift-card-customer"
+                    placeholder="Optional"
+                    value={giftCardFormData.issuedTo}
+                    onChange={(e) => setGiftCardFormData(prev => ({ ...prev, issuedTo: e.target.value }))}
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="gift-card-expiry">Expiry Date</Label>
+                  <Input
+                    id="gift-card-expiry"
+                    type="date"
+                    value={giftCardFormData.expiryDate}
+                    onChange={(e) => setGiftCardFormData(prev => ({ ...prev, expiryDate: e.target.value }))}
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="gift-card-notes">Notes</Label>
+                <Input
+                  id="gift-card-notes"
+                  placeholder="Optional notes"
+                  value={giftCardFormData.notes}
+                  onChange={(e) => setGiftCardFormData(prev => ({ ...prev, notes: e.target.value }))}
+                />
+              </div>
+              <div className="flex justify-end gap-2 pt-4">
+                <Button variant="outline" onClick={() => setShowCreateGiftCardDialog(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={handleCreateGiftCard}>
+                  Issue Gift Card
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* View Gift Card Dialog */}
+        <Dialog open={showViewGiftCardDialog} onOpenChange={setShowViewGiftCardDialog}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Gift Card Details</DialogTitle>
+              <DialogDescription>
+                View gift card information and transaction history.
+              </DialogDescription>
+            </DialogHeader>
+            {selectedGiftCard && (
+              <div className="space-y-6">
+                {/* Card Info */}
+                <div className="grid grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
+                  <div>
+                    <Label className="text-sm font-medium text-gray-600">Card Code</Label>
+                    <p className="font-mono font-medium text-lg">{selectedGiftCard.code}</p>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium text-gray-600">Status</Label>
+                    <Badge className={getGiftCardStatusColor(selectedGiftCard)}>
+                      {getGiftCardStatusText(selectedGiftCard)}
+                    </Badge>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium text-gray-600">Current Balance</Label>
+                    <p className="text-2xl font-bold text-green-600">{formatCurrency(selectedGiftCard.balance)}</p>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium text-gray-600">Initial Amount</Label>
+                    <p className="text-lg font-medium">{formatCurrency(selectedGiftCard.initialAmount)}</p>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium text-gray-600">Customer</Label>
+                    <p>{selectedGiftCard.issuedTo || 'Not assigned'}</p>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium text-gray-600">Issued Date</Label>
+                    <p>{new Date(selectedGiftCard.issuedDate).toLocaleDateString()}</p>
+                  </div>
+                </div>
+
+                {/* Transaction History */}
+                <div>
+                  <h3 className="text-lg font-semibold mb-4">Transaction History</h3>
+                  <div className="space-y-3">
+                    {selectedGiftCard.transactions.map((transaction) => (
+                      <div key={transaction.id} className="flex items-center justify-between p-3 border rounded">
+                        <div className="flex items-center gap-3">
+                          <div className={cn(
+                            "w-2 h-2 rounded-full",
+                            transaction.type === 'issued' && "bg-green-500",
+                            transaction.type === 'redeemed' && "bg-red-500",
+                            transaction.type === 'refunded' && "bg-blue-500"
+                          )} />
+                          <div>
+                            <p className="font-medium capitalize">{transaction.type}</p>
+                            <p className="text-sm text-gray-600">{transaction.description}</p>
+                            <p className="text-xs text-gray-500">
+                              {new Date(transaction.date).toLocaleString()}
+                              {transaction.staff && ` • ${transaction.staff}`}
+                            </p>
+                          </div>
+                        </div>
+                        <div className={cn(
+                          "font-medium",
+                          transaction.type === 'issued' && "text-green-600",
+                          transaction.type === 'redeemed' && "text-red-600",
+                          transaction.type === 'refunded' && "text-blue-600"
+                        )}>
+                          {transaction.type === 'redeemed' ? '-' : '+'}{formatCurrency(transaction.amount)}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Actions */}
+                {selectedGiftCard.isActive && selectedGiftCard.balance < selectedGiftCard.initialAmount && (
+                  <div className="flex justify-end gap-2 pt-4 border-t">
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        const refundAmount = selectedGiftCard.initialAmount - selectedGiftCard.balance;
+                        handleRefundGiftCard(selectedGiftCard.id, refundAmount);
+                      }}
+                    >
+                      Refund Remaining Balance
+                    </Button>
+                  </div>
+                )}
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </ProtectedRoute>
   );

@@ -184,7 +184,7 @@ export default function SuperAdminStaff() {
         {/* Main Content */}
         <div className={cn(
           "flex-1 flex flex-col transition-all duration-300 ease-in-out min-h-0",
-          sidebarOpen ? "lg:ml-64" : "lg:ml-16"
+          sidebarOpen ? "lg:ml-0" : "lg:ml-16"
         )}>
           {/* Header */}
           <header className="bg-white shadow-sm border-b flex-shrink-0">

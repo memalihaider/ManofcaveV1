@@ -33,9 +33,9 @@ export default function SuperAdminAppointments() {
       id: 1,
       customer: "John Doe",
       service: "Classic Haircut",
-      barber: "Mike Johnson",
+      staff: "Mike Johnson",
       branch: "Downtown Premium",
-      date: "2025-12-01",
+      date: "2025-12-15",
       time: "9:00 AM",
       duration: "30 min",
       price: 35,
@@ -47,9 +47,9 @@ export default function SuperAdminAppointments() {
       id: 2,
       customer: "Jane Smith",
       service: "Beard Trim & Shape",
-      barber: "Alex Rodriguez",
+      staff: "Alex Rodriguez",
       branch: "Midtown Elite",
-      date: "2025-12-01",
+      date: "2025-12-15",
       time: "10:00 AM",
       duration: "20 min",
       price: 25,
@@ -61,9 +61,9 @@ export default function SuperAdminAppointments() {
       id: 3,
       customer: "Bob Johnson",
       service: "Premium Package",
-      barber: "Sarah Chen",
+      staff: "Sarah Chen",
       branch: "Uptown Luxury",
-      date: "2025-12-01",
+      date: "2025-12-15",
       time: "11:00 AM",
       duration: "90 min",
       price: 85,
@@ -74,52 +74,52 @@ export default function SuperAdminAppointments() {
     {
       id: 4,
       customer: "Alice Brown",
-      service: "Haircut",
-      barber: "Tom Wilson",
+      service: "Haircut & Style",
+      staff: "Tom Wilson",
       branch: "Northgate Plaza",
-      date: "2025-12-01",
+      date: "2025-12-15",
       time: "2:00 PM",
-      duration: "30 min",
-      price: 35,
-      status: "scheduled",
+      duration: "45 min",
+      price: 50,
+      status: "approved",
       phone: "(555) 456-7890",
-      notes: "New customer"
+      notes: "New customer, wants modern style"
     },
     {
       id: 5,
       customer: "Charlie Wilson",
       service: "Hot Towel Shave",
-      barber: "Mike Johnson",
+      staff: "Mike Johnson",
       branch: "Downtown Premium",
-      date: "2025-12-01",
+      date: "2025-12-15",
       time: "3:00 PM",
       duration: "45 min",
       price: 45,
-      status: "scheduled",
+      status: "pending",
       phone: "(555) 567-8901",
       notes: "Regular customer"
     },
     {
       id: 6,
       customer: "Diana Prince",
-      service: "Hair Color",
-      barber: "Emma Davis",
+      service: "Hair Coloring",
+      staff: "Emma Davis",
       branch: "Suburban Comfort",
-      date: "2025-12-02",
+      date: "2025-12-16",
       time: "10:00 AM",
       duration: "90 min",
-      price: 85,
-      status: "scheduled",
+      price: 120,
+      status: "confirmed",
       phone: "(555) 678-9012",
-      notes: "Color correction"
+      notes: "Color correction, gray coverage"
     },
     {
       id: 7,
       customer: "Edward Norton",
       service: "Beard Trim",
-      barber: "John Smith",
+      staff: "John Smith",
       branch: "Westside Modern",
-      date: "2025-12-02",
+      date: "2025-12-16",
       time: "11:30 AM",
       duration: "20 min",
       price: 25,
@@ -131,15 +131,183 @@ export default function SuperAdminAppointments() {
       id: 8,
       customer: "Fiona Green",
       service: "Styling",
-      barber: "Lisa Brown",
+      staff: "Lisa Brown",
       branch: "Eastside Classic",
-      date: "2025-12-02",
+      date: "2025-12-16",
       time: "1:00 PM",
       duration: "45 min",
       price: 40,
       status: "scheduled",
       phone: "(555) 890-1234",
       notes: "Wedding styling"
+    },
+    {
+      id: 9,
+      customer: "George Miller",
+      service: "Classic Haircut",
+      staff: "David Lee",
+      branch: "Southgate Center",
+      date: "2025-12-16",
+      time: "2:30 PM",
+      duration: "30 min",
+      price: 35,
+      status: "completed",
+      phone: "(555) 901-2345",
+      notes: "Weekly appointment, same style"
+    },
+    {
+      id: 10,
+      customer: "Helen Taylor",
+      service: "Facial Treatment",
+      staff: "Maria Garcia",
+      branch: "Riverside Spa",
+      date: "2025-12-17",
+      time: "9:00 AM",
+      duration: "45 min",
+      price: 75,
+      status: "in-progress",
+      phone: "(555) 012-3456",
+      notes: "Sensitive skin treatment"
+    },
+    {
+      id: 11,
+      customer: "Ian Cooper",
+      service: "Premium Package",
+      staff: "Sarah Chen",
+      branch: "Uptown Luxury",
+      date: "2025-12-17",
+      time: "11:00 AM",
+      duration: "90 min",
+      price: 85,
+      status: "approved",
+      phone: "(555) 123-4567",
+      notes: "Birthday special package"
+    },
+    {
+      id: 12,
+      customer: "Julia Adams",
+      service: "Beard Trim & Shape",
+      staff: "Alex Rodriguez",
+      branch: "Midtown Elite",
+      date: "2025-12-17",
+      time: "1:30 PM",
+      duration: "20 min",
+      price: 25,
+      status: "scheduled",
+      phone: "(555) 234-5678",
+      notes: "Monthly maintenance"
+    },
+    {
+      id: 13,
+      customer: "Kevin Wright",
+      service: "Haircut & Style",
+      staff: "Tom Wilson",
+      branch: "Northgate Plaza",
+      date: "2025-12-17",
+      time: "3:00 PM",
+      duration: "45 min",
+      price: 50,
+      status: "pending",
+      phone: "(555) 345-6789",
+      notes: "Corporate client, professional look"
+    },
+    {
+      id: 14,
+      customer: "Laura Martinez",
+      service: "Hair Coloring",
+      staff: "Emma Davis",
+      branch: "Suburban Comfort",
+      date: "2025-12-18",
+      time: "10:00 AM",
+      duration: "60 min",
+      price: 120,
+      status: "confirmed",
+      phone: "(555) 456-7890",
+      notes: "Highlights and lowlights"
+    },
+    {
+      id: 15,
+      customer: "Michael Brown",
+      service: "Classic Haircut",
+      staff: "Mike Johnson",
+      branch: "Downtown Premium",
+      date: "2025-12-18",
+      time: "11:30 AM",
+      duration: "30 min",
+      price: 35,
+      status: "rejected",
+      phone: "(555) 567-8901",
+      notes: "Time slot not available"
+    },
+    {
+      id: 16,
+      customer: "Nancy Davis",
+      service: "Facial Treatment",
+      staff: "Lisa Brown",
+      branch: "Eastside Classic",
+      date: "2025-12-18",
+      time: "1:00 PM",
+      duration: "45 min",
+      price: 75,
+      status: "scheduled",
+      phone: "(555) 678-9012",
+      notes: "Follow-up treatment"
+    },
+    {
+      id: 17,
+      customer: "Oliver Johnson",
+      service: "Beard Trim",
+      staff: "John Smith",
+      branch: "Westside Modern",
+      date: "2025-12-18",
+      time: "2:30 PM",
+      duration: "20 min",
+      price: 25,
+      status: "completed",
+      phone: "(555) 789-0123",
+      notes: "Quick trim, very busy"
+    },
+    {
+      id: 18,
+      customer: "Paula Wilson",
+      service: "Premium Package",
+      staff: "David Lee",
+      branch: "Southgate Center",
+      date: "2025-12-19",
+      time: "9:30 AM",
+      duration: "90 min",
+      price: 85,
+      status: "in-progress",
+      phone: "(555) 890-1234",
+      notes: "Special occasion preparation"
+    },
+    {
+      id: 19,
+      customer: "Quinn Rodriguez",
+      service: "Haircut & Style",
+      staff: "Maria Garcia",
+      branch: "Riverside Spa",
+      date: "2025-12-19",
+      time: "12:00 PM",
+      duration: "45 min",
+      price: 50,
+      status: "approved",
+      phone: "(555) 901-2345",
+      notes: "New style consultation"
+    },
+    {
+      id: 20,
+      customer: "Rachel Green",
+      service: "Hair Coloring",
+      staff: "Sarah Chen",
+      branch: "Uptown Luxury",
+      date: "2025-12-19",
+      time: "2:00 PM",
+      duration: "60 min",
+      price: 120,
+      status: "scheduled",
+      phone: "(555) 012-3456",
+      notes: "Balayage technique"
     }
   ];
 
@@ -148,7 +316,7 @@ export default function SuperAdminAppointments() {
   const filteredAppointments = appointments.filter(appointment => {
     const matchesSearch = appointment.customer.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          appointment.service.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         appointment.barber.toLowerCase().includes(searchQuery.toLowerCase());
+                         appointment.staff.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = statusFilter === 'all' || appointment.status === statusFilter;
     const matchesBranch = branchFilter === 'all' || appointment.branch === branchFilter;
     return matchesSearch && matchesStatus && matchesBranch;
@@ -188,7 +356,7 @@ export default function SuperAdminAppointments() {
         {/* Main Content */}
         <div className={cn(
           "flex-1 flex flex-col transition-all duration-300 ease-in-out",
-          sidebarOpen ? "lg:ml-64" : "lg:ml-0"
+          sidebarOpen ? "lg:ml-0" : "lg:ml-0"
         )}>
           {/* Header */}
           <header className="bg-white shadow-sm border-b">
@@ -341,7 +509,7 @@ export default function SuperAdminAppointments() {
                               <span className="text-sm font-medium text-secondary">{appointment.branch}</span>
                             </div>
                             <h3 className="font-semibold text-gray-900">{appointment.customer}</h3>
-                            <p className="text-sm text-gray-600">{appointment.service} with {appointment.barber}</p>
+                            <p className="text-sm text-gray-600">{appointment.service} with {appointment.staff}</p>
                             <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
                               <span>{appointment.duration}</span>
                               <span>${appointment.price}</span>

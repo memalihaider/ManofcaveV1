@@ -64,7 +64,11 @@ export default function AdminServices() {
     duration: '',
     status: 'active',
     image: '',
-    staff: [] as string[]
+    staff: [] as string[],
+    room: '',
+    recurring: false,
+    notes: '',
+    history: [] as any[]
   });
 
   // Services data as state
@@ -79,7 +83,14 @@ export default function AdminServices() {
       status: "active",
       popularity: "high",
       staff: ["Mike Johnson", "Alex Rodriguez"],
-      image: "/api/placeholder/300/200"
+      image: "/api/placeholder/300/200",
+      room: "Room 1",
+      recurring: false,
+      notes: "Most popular service. Requires clippers and scissors.",
+      history: [
+        { date: "2024-01-15", action: "Price changed from $30 to $35", user: "Admin" },
+        { date: "2024-03-01", action: "Service created", user: "Admin" }
+      ]
     },
     {
       id: 2,
@@ -91,7 +102,14 @@ export default function AdminServices() {
       status: "active",
       popularity: "high",
       staff: ["Mike Johnson", "Alex Rodriguez"],
-      image: "/api/placeholder/300/200"
+      image: "/api/placeholder/300/200",
+      room: "Room 2",
+      recurring: false,
+      notes: "Often combined with haircut. Requires trimmers.",
+      history: [
+        { date: "2024-02-10", action: "Duration changed from 15 to 20 min", user: "Admin" },
+        { date: "2024-03-01", action: "Service created", user: "Admin" }
+      ]
     },
     {
       id: 3,
@@ -103,7 +121,14 @@ export default function AdminServices() {
       status: "active",
       popularity: "medium",
       staff: ["Sarah Chen"],
-      image: "/api/placeholder/300/200"
+      image: "/api/placeholder/300/200",
+      room: "Room 3",
+      recurring: true,
+      notes: "Requires color mixing station. Touch-ups available.",
+      history: [
+        { date: "2024-01-20", action: "Price changed from $80 to $85", user: "Admin" },
+        { date: "2024-03-01", action: "Service created", user: "Admin" }
+      ]
     },
     {
       id: 4,
@@ -115,7 +140,14 @@ export default function AdminServices() {
       status: "active",
       popularity: "medium",
       staff: ["Mike Johnson", "Alex Rodriguez"],
-      image: "/api/placeholder/300/200"
+      image: "/api/placeholder/300/200",
+      room: "Room 1",
+      recurring: false,
+      notes: "Requires straight razor and hot towel setup.",
+      history: [
+        { date: "2024-02-15", action: "Duration changed from 40 to 45 min", user: "Admin" },
+        { date: "2024-03-01", action: "Service created", user: "Admin" }
+      ]
     },
     {
       id: 5,
@@ -127,7 +159,14 @@ export default function AdminServices() {
       status: "active",
       popularity: "high",
       staff: ["Sarah Chen"],
-      image: "/api/placeholder/300/200"
+      image: "/api/placeholder/300/200",
+      room: "Room 2",
+      recurring: true,
+      notes: "Popular for special occasions. Requires shampoo station.",
+      history: [
+        { date: "2024-01-25", action: "Price changed from $35 to $40", user: "Admin" },
+        { date: "2024-03-01", action: "Service created", user: "Admin" }
+      ]
     },
     {
       id: 6,
@@ -139,7 +178,14 @@ export default function AdminServices() {
       status: "inactive",
       popularity: "low",
       staff: ["Sarah Chen"],
-      image: "/api/placeholder/300/200"
+      image: "/api/placeholder/300/200",
+      room: "Room 4",
+      recurring: true,
+      notes: "Seasonal service. Requires facial bed and products.",
+      history: [
+        { date: "2024-11-01", action: "Status changed to inactive", user: "Admin" },
+        { date: "2024-03-01", action: "Service created", user: "Admin" }
+      ]
     }
   ]);
 
@@ -179,7 +225,11 @@ export default function AdminServices() {
       duration: '',
       status: 'active',
       image: '',
-      staff: []
+      staff: [],
+      room: '',
+      recurring: false,
+      notes: '',
+      history: []
     });
     setServiceImageFile(null);
     setServiceImageUploadType('url');
@@ -211,7 +261,11 @@ export default function AdminServices() {
       duration: service.duration?.toString() || '',
       status: service.status || 'active',
       image: service.image || '',
-      staff: service.staff ? [...service.staff] : []
+      staff: service.staff ? [...service.staff] : [],
+      room: service.room || '',
+      recurring: service.recurring || false,
+      notes: service.notes || '',
+      history: service.history || []
     });
     setCustomCategory(customCat);
     setShowEditServiceDialog(true);
@@ -806,6 +860,47 @@ export default function AdminServices() {
                             </SelectContent>
                           </Select>
                         </div>
+
+                        <div className="space-y-3">
+                          <Label htmlFor="service-room" className="text-sm font-semibold text-gray-700">Room</Label>
+                          <Select value={serviceForm.room} onValueChange={(value) => setServiceForm({...serviceForm, room: value})}>
+                            <SelectTrigger className="h-12 border-2 border-gray-200 focus:border-primary">
+                              <SelectValue placeholder="Select room" />
+                            </SelectTrigger>
+                            <SelectContent className="border-2">
+                              <SelectItem value="Room 1">Room 1</SelectItem>
+                              <SelectItem value="Room 2">Room 2</SelectItem>
+                              <SelectItem value="Room 3">Room 3</SelectItem>
+                              <SelectItem value="Room 4">Room 4</SelectItem>
+                              <SelectItem value="Room 5">Room 5</SelectItem>
+                              <SelectItem value="Room 6">Room 6</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div className="space-y-3">
+                          <Label htmlFor="service-recurring" className="text-sm font-semibold text-gray-700">Recurring Service</Label>
+                          <Select value={serviceForm.recurring ? 'yes' : 'no'} onValueChange={(value) => setServiceForm({...serviceForm, recurring: value === 'yes'})}>
+                            <SelectTrigger className="h-12 border-2 border-gray-200 focus:border-primary">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent className="border-2">
+                              <SelectItem value="no">No</SelectItem>
+                              <SelectItem value="yes">Yes</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div className="space-y-3">
+                          <Label htmlFor="service-notes" className="text-sm font-semibold text-gray-700">Notes</Label>
+                          <Textarea
+                            id="service-notes"
+                            placeholder="Internal notes about this service..."
+                            value={serviceForm.notes || ''}
+                            onChange={(e) => setServiceForm({...serviceForm, notes: e.target.value})}
+                            className="min-h-20 border-2 border-gray-200 focus:border-primary focus:ring-primary/20"
+                          />
+                        </div>
                       </CardContent>
                     </Card>
                   </div>
@@ -1093,6 +1188,47 @@ export default function AdminServices() {
                               </SelectItem>
                             </SelectContent>
                           </Select>
+                        </div>
+
+                        <div className="space-y-3">
+                          <Label htmlFor="edit-service-room" className="text-sm font-semibold text-gray-700">Room</Label>
+                          <Select value={serviceForm.room} onValueChange={(value) => setServiceForm({...serviceForm, room: value})}>
+                            <SelectTrigger className="h-12 border-2 border-gray-200 focus:border-primary">
+                              <SelectValue placeholder="Select room" />
+                            </SelectTrigger>
+                            <SelectContent className="border-2">
+                              <SelectItem value="Room 1">Room 1</SelectItem>
+                              <SelectItem value="Room 2">Room 2</SelectItem>
+                              <SelectItem value="Room 3">Room 3</SelectItem>
+                              <SelectItem value="Room 4">Room 4</SelectItem>
+                              <SelectItem value="Room 5">Room 5</SelectItem>
+                              <SelectItem value="Room 6">Room 6</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div className="space-y-3">
+                          <Label htmlFor="edit-service-recurring" className="text-sm font-semibold text-gray-700">Recurring Service</Label>
+                          <Select value={serviceForm.recurring ? 'yes' : 'no'} onValueChange={(value) => setServiceForm({...serviceForm, recurring: value === 'yes'})}>
+                            <SelectTrigger className="h-12 border-2 border-gray-200 focus:border-primary">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent className="border-2">
+                              <SelectItem value="no">No</SelectItem>
+                              <SelectItem value="yes">Yes</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div className="space-y-3">
+                          <Label htmlFor="edit-service-notes" className="text-sm font-semibold text-gray-700">Notes</Label>
+                          <Textarea
+                            id="edit-service-notes"
+                            placeholder="Internal notes about this service..."
+                            value={serviceForm.notes || ''}
+                            onChange={(e) => setServiceForm({...serviceForm, notes: e.target.value})}
+                            className="min-h-20 border-2 border-gray-200 focus:border-primary focus:ring-primary/20"
+                          />
                         </div>
                       </CardContent>
                     </Card>
