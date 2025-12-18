@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/contexts/AuthContext';
+import { useCustomerStore } from '@/stores/customer.store';
 import {
   User,
   ShoppingBag,
@@ -21,11 +22,14 @@ import {
   Star,
   ChevronRight,
   Plus,
-  FileText
+  FileText,
+  Wallet,
+  Gift
 } from 'lucide-react';
 
 export default function CustomerDashboard() {
   const { user, logout } = useAuth();
+  const { customer, loadCustomerData } = useCustomerStore();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState('overview');
 
@@ -76,8 +80,10 @@ export default function CustomerDashboard() {
   useEffect(() => {
     if (!user || user.role !== 'customer') {
       router.push('/customer/login');
+    } else if (user.id && !customer) {
+      loadCustomerData(user.id);
     }
-  }, [user, router]);
+  }, [user, router, customer, loadCustomerData]);
 
   if (!user || user.role !== 'customer') {
     return null;
@@ -111,10 +117,26 @@ export default function CustomerDashboard() {
               <Card>
                 <CardContent className="p-6">
                   <div className="flex items-center">
-                    <ShoppingBag className="w-8 h-8 text-primary mr-3" />
+                    <Wallet className="w-8 h-8 text-green-600 mr-3" />
                     <div>
-                      <p className="text-2xl font-bold text-primary">{quickStats.totalOrders}</p>
-                      <p className="text-sm text-gray-600">Total Orders</p>
+                      <p className="text-2xl font-bold text-green-600">
+                        ${customer?.eWalletBalance?.toFixed(2) || '0.00'}
+                      </p>
+                      <p className="text-sm text-gray-600">E-Wallet Balance</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center">
+                    <Gift className="w-8 h-8 text-purple-600 mr-3" />
+                    <div>
+                      <p className="text-2xl font-bold text-purple-600">
+                        {customer?.loyaltyPoints || 0}
+                      </p>
+                      <p className="text-sm text-gray-600">Loyalty Points</p>
                     </div>
                   </div>
                 </CardContent>
@@ -125,7 +147,7 @@ export default function CustomerDashboard() {
                   <div className="flex items-center">
                     <CreditCard className="w-8 h-8 text-primary mr-3" />
                     <div>
-                      <p className="text-2xl font-bold text-primary">${quickStats.totalSpent}</p>
+                      <p className="text-2xl font-bold text-primary">${customer?.totalSpent?.toFixed(2) || quickStats.totalSpent}</p>
                       <p className="text-sm text-gray-600">Total Spent</p>
                     </div>
                   </div>
@@ -139,18 +161,6 @@ export default function CustomerDashboard() {
                     <div>
                       <p className="text-2xl font-bold text-primary">{quickStats.upcomingAppointments}</p>
                       <p className="text-sm text-gray-600">Upcoming Appts</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center">
-                    <Star className="w-8 h-8 text-primary mr-3" />
-                    <div>
-                      <p className="text-2xl font-bold text-primary">{quickStats.favoriteService}</p>
-                      <p className="text-sm text-gray-600">Favorite Service</p>
                     </div>
                   </div>
                 </CardContent>

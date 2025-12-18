@@ -14,11 +14,17 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Trash2, Plus, Minus, CreditCard, Truck, Wallet, ArrowLeft, CheckCircle } from 'lucide-react';
 import { useCartStore } from '@/stores/cart.store';
+import { useAuth } from '@/contexts/AuthContext';
+import { useCustomerStore } from '@/stores/customer.store';
 
 export default function CartPage() {
   const { items, removeItem, updateQuantity, getTotal, clearCart } = useCartStore();
+  const { user } = useAuth();
+  const { customer, deductFromEWallet, updateTotalSpent, addLoyaltyPoints, calculateLoyaltyPoints } = useCustomerStore();
   const [checkoutStep, setCheckoutStep] = useState<'cart' | 'checkout' | 'payment' | 'confirmation'>('cart');
   const [paymentMethod, setPaymentMethod] = useState<string>('cod');
+  const [useEWallet, setUseEWallet] = useState<boolean>(false);
+  const [eWalletAmount, setEWalletAmount] = useState<number>(0);
   const [customerInfo, setCustomerInfo] = useState({
     name: '',
     email: '',
@@ -29,7 +35,9 @@ export default function CartPage() {
   const subtotal = getTotal();
   const shipping = subtotal > 50 ? 0 : 9.99;
   const tax = subtotal * 0.08; // 8% tax
-  const total = subtotal + shipping + tax;
+  const totalBeforeEWallet = subtotal + shipping + tax;
+  const eWalletDiscount = useEWallet ? Math.min(eWalletAmount, totalBeforeEWallet) : 0;
+  const total = totalBeforeEWallet - eWalletDiscount;
 
   const handleQuantityChange = (id: string | number, newQuantity: number) => {
     if (newQuantity <= 0) {
@@ -55,14 +63,66 @@ export default function CartPage() {
 
   const handlePaymentSuccess = (details: any) => {
     console.log('Payment successful:', details);
+
+    // Add loyalty points for all successful payments (if user is logged in)
+    if (user && user.role === 'customer') {
+      const loyaltyPointsEarned = calculateLoyaltyPoints(total);
+      addLoyaltyPoints(loyaltyPointsEarned);
+      updateTotalSpent(total);
+
+      // If paying with cash/card and there's extra money, add to E-wallet
+      if (details.method === 'cod' || details.method === 'card') {
+        // For demo purposes, assume customers sometimes pay extra
+        // In real implementation, this would come from payment processing
+        const extraPaid = Math.random() > 0.7 ? Math.floor(Math.random() * 20) + 5 : 0; // 30% chance of extra payment
+        if (extraPaid > 0) {
+          // This would typically come from the payment processor
+          // For demo, we'll simulate it
+          console.log(`Extra $${extraPaid} paid - adding to E-wallet`);
+        }
+      }
+    }
+
     setCheckoutStep('confirmation');
     clearCart();
   };
 
   const handleCashOnDelivery = () => {
     // Simulate COD order placement
-    setCheckoutStep('confirmation');
-    clearCart();
+    handlePaymentSuccess({ method: 'cod', amount: total });
+  };
+
+  const handleEWalletPayment = () => {
+    if (!user || user.role !== 'customer') {
+      alert('Please log in to use E-Wallet');
+      return;
+    }
+
+    if (!useEWallet || eWalletAmount <= 0) {
+      alert('Please specify E-Wallet amount to use');
+      return;
+    }
+
+    // Deduct from E-Wallet
+    const success = deductFromEWallet(eWalletAmount);
+    if (!success) {
+      alert('Insufficient E-Wallet balance');
+      return;
+    }
+
+    // Update total spent and add loyalty points
+    updateTotalSpent(total);
+    const loyaltyPointsEarned = calculateLoyaltyPoints(total);
+    addLoyaltyPoints(loyaltyPointsEarned);
+
+    // If there's any remaining amount after E-Wallet, it would be handled by other payment methods
+    // For now, assume full payment with E-Wallet
+    handlePaymentSuccess({
+      method: 'ewallet',
+      eWalletAmount: eWalletAmount,
+      totalAmount: total,
+      loyaltyPointsEarned: loyaltyPointsEarned
+    });
   };
 
   if (checkoutStep === 'confirmation') {
@@ -129,6 +189,12 @@ export default function CartPage() {
                     <span>Tax:</span>
                     <span>${tax.toFixed(2)}</span>
                   </div>
+                  {eWalletDiscount > 0 && (
+                    <div className="flex justify-between text-green-600">
+                      <span>E-Wallet Discount:</span>
+                      <span>-${eWalletDiscount.toFixed(2)}</span>
+                    </div>
+                  )}
                   <Separator />
                   <div className="flex justify-between font-bold text-lg">
                     <span>Total:</span>
@@ -139,7 +205,13 @@ export default function CartPage() {
                 <Separator />
 
                 <div className="space-y-4">
-                  <h3 className="font-semibold">Payment Method: {paymentMethod === 'cod' ? 'Cash on Delivery' : 'Credit Card'}</h3>
+                  <h3 className="font-semibold">
+                    Payment Method: {
+                      paymentMethod === 'cod' ? 'Cash on Delivery' :
+                      paymentMethod === 'card' ? 'Credit/Debit Card' :
+                      paymentMethod === 'ewallet' ? 'E-Wallet' : 'Unknown'
+                    }
+                  </h3>
 
                   {paymentMethod === 'cod' && (
                     <div className="space-y-4">
@@ -167,6 +239,22 @@ export default function CartPage() {
                       >
                         <CreditCard className="w-4 h-4 mr-2" />
                         Pay with Credit Card
+                      </Button>
+                    </div>
+                  )}
+
+                  {paymentMethod === 'ewallet' && (
+                    <div className="space-y-4">
+                      <p className="text-sm text-gray-600">
+                        Pay using your E-Wallet balance. {eWalletDiscount > 0 && `Using $${eWalletDiscount.toFixed(2)} from your E-Wallet.`}
+                      </p>
+                      <Button
+                        onClick={handleEWalletPayment}
+                        className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                        disabled={!useEWallet || eWalletAmount <= 0}
+                      >
+                        <Wallet className="w-4 h-4 mr-2" />
+                        Pay with E-Wallet
                       </Button>
                     </div>
                   )}
@@ -273,7 +361,57 @@ export default function CartPage() {
                         Credit/Debit Card
                       </Label>
                     </div>
+                    {user && user.role === 'customer' && (
+                      <div className="flex items-center space-x-2 p-4 border rounded-lg hover:bg-gray-50">
+                        <RadioGroupItem value="ewallet" id="ewallet" />
+                        <Label htmlFor="ewallet" className="flex items-center gap-2 cursor-pointer">
+                          <Wallet className="w-5 h-5 text-blue-600" />
+                          E-Wallet (Balance: ${customer?.eWalletBalance?.toFixed(2) || '0.00'})
+                        </Label>
+                      </div>
+                    )}
                   </RadioGroup>
+
+                  {paymentMethod === 'ewallet' && user && user.role === 'customer' && (
+                    <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                      <h4 className="font-semibold text-blue-800 mb-2">Use E-Wallet</h4>
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            id="useEWallet"
+                            checked={useEWallet}
+                            onChange={(e) => setUseEWallet(e.target.checked)}
+                            className="rounded"
+                          />
+                          <Label htmlFor="useEWallet" className="text-sm">
+                            Use E-Wallet balance for this purchase
+                          </Label>
+                        </div>
+                        {useEWallet && (
+                          <div className="space-y-2">
+                            <Label htmlFor="eWalletAmount" className="text-sm font-medium">
+                              Amount to use from E-Wallet (Max: ${Math.min(customer?.eWalletBalance || 0, totalBeforeEWallet).toFixed(2)})
+                            </Label>
+                            <Input
+                              id="eWalletAmount"
+                              type="number"
+                              value={eWalletAmount}
+                              onChange={(e) => {
+                                const amount = parseFloat(e.target.value) || 0;
+                                const maxAmount = Math.min(customer?.eWalletBalance || 0, totalBeforeEWallet);
+                                setEWalletAmount(Math.min(amount, maxAmount));
+                              }}
+                              max={Math.min(customer?.eWalletBalance || 0, totalBeforeEWallet)}
+                              min={0}
+                              step={0.01}
+                              placeholder="0.00"
+                            />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </div>
