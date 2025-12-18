@@ -31,11 +31,17 @@ export default function SuperAdminFinancial() {
       totalRevenue: 156780,
       totalExpenses: 89450,
       netProfit: 67330,
+      totalLoss: 12450, // New: Total losses across all branches
+      profitWithVAT: 82330, // New: Profit including VAT
+      profitWithoutVAT: 67330, // New: Profit excluding VAT
+      totalVAT: 15000, // New: Total VAT collected
       profitMargin: 42.9,
       revenueChange: 18.5,
       expensesChange: 12.3,
       profitChange: 28.7,
-      marginChange: 2.1
+      marginChange: 2.1,
+      lossChange: -15.2, // New: Loss change percentage
+      vatChange: 12.8 // New: VAT change percentage
     },
     branchFinancials: [
       { name: "Downtown Premium", revenue: 45230, expenses: 25890, profit: 19340, margin: 42.8, status: "profitable" },
@@ -163,7 +169,7 @@ export default function SuperAdminFinancial() {
           <div className="flex-1 overflow-auto">
             <div className="p-4 lg:p-8">
               {/* Financial Overview Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-6 mb-8">
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
@@ -192,13 +198,52 @@ export default function SuperAdminFinancial() {
 
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Net Profit</CardTitle>
-                    <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                    <CardTitle className="text-sm font-medium">Total Loss</CardTitle>
+                    <TrendingDown className="h-4 w-4 text-red-500" />
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl font-bold">{formatCurrency(financial.overview.netProfit)}</div>
+                    <div className="text-2xl font-bold text-red-600">{formatCurrency(financial.overview.totalLoss)}</div>
+                    <p className="text-xs text-muted-foreground">
+                      <span className="text-red-600">{formatPercentage(financial.overview.lossChange)}</span> from last period
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Profit (w/o VAT)</CardTitle>
+                    <TrendingUp className="h-4 w-4 text-green-500" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold text-green-600">{formatCurrency(financial.overview.profitWithoutVAT)}</div>
                     <p className="text-xs text-muted-foreground">
                       <span className="text-green-600">{formatPercentage(financial.overview.profitChange)}</span> from last period
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Profit (w/ VAT)</CardTitle>
+                    <Banknote className="h-4 w-4 text-blue-500" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold text-blue-600">{formatCurrency(financial.overview.profitWithVAT)}</div>
+                    <p className="text-xs text-muted-foreground">
+                      <span className="text-green-600">{formatPercentage(financial.overview.profitChange)}</span> from last period
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Total VAT</CardTitle>
+                    <PieChart className="h-4 w-4 text-purple-500" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold text-purple-600">{formatCurrency(financial.overview.totalVAT)}</div>
+                    <p className="text-xs text-muted-foreground">
+                      <span className="text-green-600">{formatPercentage(financial.overview.vatChange)}</span> from last period
                     </p>
                   </CardContent>
                 </Card>
@@ -213,6 +258,88 @@ export default function SuperAdminFinancial() {
                     <p className="text-xs text-muted-foreground">
                       <span className="text-green-600">{formatPercentage(financial.overview.marginChange)}</span> from last period
                     </p>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* VAT and Profit Breakdown */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <PieChart className="w-5 h-5 text-purple-600" />
+                      VAT Analysis
+                    </CardTitle>
+                    <CardDescription>Breakdown of VAT collected and profit calculations</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="p-4 bg-purple-50 rounded-lg">
+                        <div className="text-sm font-medium text-purple-600 mb-1">Total VAT Collected</div>
+                        <div className="text-2xl font-bold text-purple-700">{formatCurrency(financial.overview.totalVAT)}</div>
+                        <div className="text-xs text-purple-500 mt-1">
+                          {formatPercentage(financial.overview.vatChange)} from last period
+                        </div>
+                      </div>
+                      <div className="p-4 bg-blue-50 rounded-lg">
+                        <div className="text-sm font-medium text-blue-600 mb-1">VAT Rate</div>
+                        <div className="text-2xl font-bold text-blue-700">5%</div>
+                        <div className="text-xs text-blue-500 mt-1">Standard rate</div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                        <span className="text-sm font-medium">Profit (without VAT)</span>
+                        <span className="font-semibold text-green-600">{formatCurrency(financial.overview.profitWithoutVAT)}</span>
+                      </div>
+                      <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                        <span className="text-sm font-medium">+ VAT Collected</span>
+                        <span className="font-semibold text-purple-600">+{formatCurrency(financial.overview.totalVAT)}</span>
+                      </div>
+                      <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg border-2 border-green-200">
+                        <span className="text-sm font-bold">Total Profit (with VAT)</span>
+                        <span className="font-bold text-green-700">{formatCurrency(financial.overview.profitWithVAT)}</span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <TrendingDown className="w-5 h-5 text-red-600" />
+                      Loss Analysis
+                    </CardTitle>
+                    <CardDescription>Analysis of losses and financial health indicators</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="p-4 bg-red-50 rounded-lg border border-red-200">
+                      <div className="text-sm font-medium text-red-600 mb-1">Total Losses</div>
+                      <div className="text-2xl font-bold text-red-700">{formatCurrency(financial.overview.totalLoss)}</div>
+                      <div className="text-xs text-red-500 mt-1">
+                        {formatPercentage(financial.overview.lossChange)} from last period
+                      </div>
+                    </div>
+
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                        <span className="text-sm font-medium">Revenue</span>
+                        <span className="font-semibold">{formatCurrency(financial.overview.totalRevenue)}</span>
+                      </div>
+                      <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                        <span className="text-sm font-medium">- Expenses</span>
+                        <span className="font-semibold text-red-600">-{formatCurrency(financial.overview.totalExpenses)}</span>
+                      </div>
+                      <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                        <span className="text-sm font-medium">- Losses</span>
+                        <span className="font-semibold text-red-600">-{formatCurrency(financial.overview.totalLoss)}</span>
+                      </div>
+                      <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg border-2 border-green-200">
+                        <span className="text-sm font-bold">Net Profit</span>
+                        <span className="font-bold text-green-700">{formatCurrency(financial.overview.netProfit)}</span>
+                      </div>
+                    </div>
                   </CardContent>
                 </Card>
               </div>

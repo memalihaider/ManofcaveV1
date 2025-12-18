@@ -36,6 +36,8 @@ export default function AdminAnalytics() {
       category: expenseCategory,
       amount: parseFloat(expenseAmount),
       description: expenseDescription,
+      invoiceUrl: expenseInvoiceUrl,
+      invoiceFile: expenseInvoiceFile,
       date: new Date().toISOString().split('T')[0]
     });
 
@@ -43,6 +45,8 @@ export default function AdminAnalytics() {
     setExpenseCategory('');
     setExpenseAmount('');
     setExpenseDescription('');
+    setExpenseInvoiceUrl('');
+    setExpenseInvoiceFile(null);
 
     // Show success message (you could add a toast notification here)
     alert('Expense added successfully!');
@@ -54,6 +58,8 @@ export default function AdminAnalytics() {
   const [expenseCategory, setExpenseCategory] = useState('');
   const [expenseAmount, setExpenseAmount] = useState('');
   const [expenseDescription, setExpenseDescription] = useState('');
+  const [expenseInvoiceUrl, setExpenseInvoiceUrl] = useState('');
+  const [expenseInvoiceFile, setExpenseInvoiceFile] = useState<File | null>(null);
 
   // Comprehensive analytics data with detailed reports
   const analytics = {
@@ -895,6 +901,34 @@ export default function AdminAnalytics() {
                             placeholder="Describe the expense..."
                             rows={3}
                           />
+                        </div>
+
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium">Invoice (Optional)</label>
+                          <div className="space-y-3">
+                            <div>
+                              <label className="text-xs text-gray-600 mb-1 block">Invoice URL</label>
+                              <input
+                                type="url"
+                                value={expenseInvoiceUrl}
+                                onChange={(e) => setExpenseInvoiceUrl(e.target.value)}
+                                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                placeholder="https://example.com/invoice.pdf"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-xs text-gray-600 mb-1 block">Or Upload Invoice Image</label>
+                              <input
+                                type="file"
+                                accept="image/*,.pdf"
+                                onChange={(e) => setExpenseInvoiceFile(e.target.files?.[0] || null)}
+                                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                              />
+                              {expenseInvoiceFile && (
+                                <p className="text-xs text-green-600 mt-1">Selected: {expenseInvoiceFile.name}</p>
+                              )}
+                            </div>
+                          </div>
                         </div>
 
                         <Button onClick={handleAddExpense} className="w-full" disabled={!expenseCategory || !expenseAmount}>

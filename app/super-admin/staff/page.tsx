@@ -6,13 +6,14 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Users, Star, Clock, Phone, Mail, Plus, Edit, MoreVertical, Search, Filter, Building } from "lucide-react";
+import { Users, Star, Clock, Phone, Mail, Plus, Edit, MoreVertical, Search, Filter, Building, AlertTriangle } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { AdminSidebar, AdminMobileSidebar } from "@/components/admin/AdminSidebar";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
+import { useVisaNotifications } from "@/hooks/useVisaNotifications";
 
 export default function SuperAdminStaff() {
   const { user, logout } = useAuth();
@@ -43,6 +44,10 @@ export default function SuperAdminStaff() {
       status: "active",
       hireDate: "2017-03-15",
       salary: 45000,
+      commission: 5,
+      commissionType: "barber",
+      idCardPhoto: "/api/placeholder/150/200",
+      visaExpiryDate: "2026-06-15",
       avatar: "/api/placeholder/100/100"
     },
     {
@@ -58,6 +63,10 @@ export default function SuperAdminStaff() {
       status: "active",
       hireDate: "2019-07-22",
       salary: 38000,
+      commission: 4,
+      commissionType: "stylist",
+      idCardPhoto: "/api/placeholder/150/200",
+      visaExpiryDate: "2026-08-20",
       avatar: "/api/placeholder/100/100"
     },
     {
@@ -73,6 +82,10 @@ export default function SuperAdminStaff() {
       status: "active",
       hireDate: "2020-01-10",
       salary: 35000,
+      commission: 5,
+      commissionType: "barber",
+      idCardPhoto: "/api/placeholder/150/200",
+      visaExpiryDate: "2026-12-10",
       avatar: "/api/placeholder/100/100"
     },
     {
@@ -88,6 +101,10 @@ export default function SuperAdminStaff() {
       status: "active",
       hireDate: "2024-06-01",
       salary: 25000,
+      commission: 2,
+      commissionType: "apprentice",
+      idCardPhoto: "/api/placeholder/150/200",
+      visaExpiryDate: "2027-03-05",
       avatar: "/api/placeholder/100/100"
     },
     {
@@ -103,6 +120,10 @@ export default function SuperAdminStaff() {
       status: "active",
       hireDate: "2021-04-15",
       salary: 32000,
+      commission: 5,
+      commissionType: "barber",
+      idCardPhoto: "/api/placeholder/150/200",
+      visaExpiryDate: "2026-11-25",
       avatar: "/api/placeholder/100/100"
     },
     {
@@ -118,6 +139,10 @@ export default function SuperAdminStaff() {
       status: "active",
       hireDate: "2018-09-30",
       salary: 40000,
+      commission: 4,
+      commissionType: "stylist",
+      idCardPhoto: "/api/placeholder/150/200",
+      visaExpiryDate: "2026-07-14",
       avatar: "/api/placeholder/100/100"
     },
     {
@@ -133,6 +158,10 @@ export default function SuperAdminStaff() {
       status: "active",
       hireDate: "2022-02-20",
       salary: 30000,
+      commission: 5,
+      commissionType: "barber",
+      idCardPhoto: "/api/placeholder/150/200",
+      visaExpiryDate: "2026-09-30",
       avatar: "/api/placeholder/100/100"
     },
     {
@@ -148,9 +177,16 @@ export default function SuperAdminStaff() {
       status: "inactive",
       hireDate: "2024-09-15",
       salary: 22000,
+      commission: 2,
+      commissionType: "apprentice",
+      idCardPhoto: "/api/placeholder/150/200",
+      visaExpiryDate: "2027-01-20",
       avatar: "/api/placeholder/100/100"
     }
   ];
+
+  // Use visa notifications hook
+  useVisaNotifications(staff);
 
   const branches = [...new Set(staff.map(member => member.branch))];
   const roles = [...new Set(staff.map(member => member.role))];
@@ -171,6 +207,13 @@ export default function SuperAdminStaff() {
       case "on-leave": return "bg-yellow-100 text-yellow-800";
       default: return "bg-gray-100 text-gray-800";
     }
+  };
+
+  const isVisaExpiringSoon = (expiryDate: string) => {
+    const today = new Date();
+    const expiry = new Date(expiryDate);
+    const daysUntilExpiry = Math.ceil((expiry.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+    return daysUntilExpiry <= 30 && daysUntilExpiry >= 0; // Expiring within 30 days or already expired
   };
 
   return (
@@ -399,9 +442,34 @@ export default function SuperAdminStaff() {
                           </div>
                         </div>
 
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <h4 className="font-medium text-gray-900 mb-2">Commission</h4>
+                            <p className="text-sm text-gray-600">{member.commission}% ({member.commissionType})</p>
+                          </div>
+                          <div>
+                            <h4 className="font-medium text-gray-900 mb-2">Visa Expiry</h4>
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm text-gray-600">{new Date(member.visaExpiryDate).toLocaleDateString()}</span>
+                              {isVisaExpiringSoon(member.visaExpiryDate) && (
+                                <Badge variant="destructive" className="text-xs">
+                                  <AlertTriangle className="w-3 h-3 mr-1" />
+                                  Soon
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
                         <div>
-                          <h4 className="font-medium text-gray-900 mb-2">Hire Date</h4>
-                          <p className="text-sm text-gray-600">{new Date(member.hireDate).toLocaleDateString()}</p>
+                          <h4 className="font-medium text-gray-900 mb-2">ID Card Photo</h4>
+                          <div className="w-20 h-12 bg-gray-100 rounded border overflow-hidden">
+                            <img
+                              src={member.idCardPhoto}
+                              alt="ID Card"
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
                         </div>
 
                         <div className="flex gap-2 pt-2">

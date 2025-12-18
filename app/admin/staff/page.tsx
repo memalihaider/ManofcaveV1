@@ -44,6 +44,7 @@ import { AdminSidebar, AdminMobileSidebar } from "@/components/admin/AdminSideba
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { useVisaNotifications } from "@/hooks/useVisaNotifications";
 
 interface StaffMember {
   id: number;
@@ -58,6 +59,11 @@ interface StaffMember {
   status: 'active' | 'inactive' | 'on-leave';
   avatar: string;
   schedule: Record<string, string>;
+  salary: number;
+  commission: number; // percentage
+  commissionType: string; // e.g., 'barber', 'stylist'
+  idCardPhoto: string;
+  visaExpiryDate: string; // ISO date string
   specialtyInput?: string; // For editing purposes
 }
 
@@ -107,7 +113,12 @@ export default function AdminStaff() {
         friday: "9AM-7PM",
         saturday: "8AM-5PM",
         sunday: "Closed"
-      }
+      },
+      salary: 45000,
+      commission: 5,
+      commissionType: "barber",
+      idCardPhoto: "/api/placeholder/150/200",
+      visaExpiryDate: "2026-06-15"
     },
     {
       id: 2,
@@ -129,7 +140,12 @@ export default function AdminStaff() {
         friday: "10AM-6PM",
         saturday: "9AM-4PM",
         sunday: "Closed"
-      }
+      },
+      salary: 38000,
+      commission: 4,
+      commissionType: "stylist",
+      idCardPhoto: "/api/placeholder/150/200",
+      visaExpiryDate: "2026-08-20"
     },
     {
       id: 3,
@@ -151,7 +167,12 @@ export default function AdminStaff() {
         friday: "9AM-7PM",
         saturday: "8AM-5PM",
         sunday: "Closed"
-      }
+      },
+      salary: 35000,
+      commission: 5,
+      commissionType: "barber",
+      idCardPhoto: "/api/placeholder/150/200",
+      visaExpiryDate: "2026-12-10"
     },
     {
       id: 4,
@@ -173,9 +194,17 @@ export default function AdminStaff() {
         friday: "10AM-4PM",
         saturday: "Closed",
         sunday: "Closed"
-      }
+      },
+      salary: 25000,
+      commission: 2,
+      commissionType: "apprentice",
+      idCardPhoto: "/api/placeholder/150/200",
+      visaExpiryDate: "2027-03-05"
     }
   ]);
+
+  // Use visa notifications hook
+  useVisaNotifications(staff);
 
   const [newStaff, setNewStaff] = useState({
     name: '',
@@ -187,6 +216,11 @@ export default function AdminStaff() {
     specialtyInput: '',
     status: 'active' as 'active' | 'inactive' | 'on-leave',
     avatar: '',
+    salary: 0,
+    commission: 0,
+    commissionType: '',
+    idCardPhoto: '',
+    visaExpiryDate: '',
     schedule: {
       monday: '9AM-7PM',
       tuesday: '9AM-7PM',
@@ -228,6 +262,13 @@ export default function AdminStaff() {
       case "on-leave": return <AlertTriangle className="w-3 h-3" />;
       default: return null;
     }
+  };
+
+  const isVisaExpiringSoon = (expiryDate: string) => {
+    const today = new Date();
+    const expiry = new Date(expiryDate);
+    const daysUntilExpiry = Math.ceil((expiry.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+    return daysUntilExpiry <= 30 && daysUntilExpiry >= 0; // Expiring within 30 days or already expired
   };
 
   const markAttendance = (staffId: number, status: 'present' | 'absent' | 'late') => {
@@ -338,7 +379,12 @@ export default function AdminStaff() {
       experience: newStaff.experience,
       status: newStaff.status,
       avatar: avatarUrl,
-      schedule: newStaff.schedule
+      schedule: newStaff.schedule,
+      salary: newStaff.salary,
+      commission: newStaff.commission || (newStaff.role.toLowerCase().includes('barber') ? 5 : 4),
+      commissionType: newStaff.commissionType || (newStaff.role.toLowerCase().includes('barber') ? 'barber' : 'stylist'),
+      idCardPhoto: newStaff.idCardPhoto || '/api/placeholder/150/200',
+      visaExpiryDate: newStaff.visaExpiryDate || new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
     };
 
     setStaff(prev => [...prev, staffMember]);
@@ -354,6 +400,11 @@ export default function AdminStaff() {
       specialtyInput: '',
       status: 'active',
       avatar: '',
+      salary: 0,
+      commission: 0,
+      commissionType: '',
+      idCardPhoto: '',
+      visaExpiryDate: '',
       schedule: {
         monday: '9AM-7PM',
         tuesday: '9AM-7PM',
@@ -392,6 +443,11 @@ export default function AdminStaff() {
       specialtyInput: '',
       status: 'active',
       avatar: '',
+      salary: 0,
+      commission: 0,
+      commissionType: '',
+      idCardPhoto: '',
+      visaExpiryDate: '',
       schedule: {
         monday: '9AM-7PM',
         tuesday: '9AM-7PM',
@@ -586,21 +642,22 @@ export default function AdminStaff() {
                         {/* Enhanced Progress Indicator */}
                         <div className="mt-6 space-y-3">
                           <div className="flex items-center justify-between">
-                            <span className="text-sm font-semibold text-gray-700">Step {addStaffCurrentStep} of 3</span>
+                            <span className="text-sm font-semibold text-gray-700">Step {addStaffCurrentStep} of 4</span>
                             <span className="text-sm text-gray-500 font-medium">
                               {addStaffCurrentStep === 1 ? 'Basic Information' :
-                               addStaffCurrentStep === 2 ? 'Professional Details' : 'Schedule & Finalize'}
+                               addStaffCurrentStep === 2 ? 'Professional Details' :
+                               addStaffCurrentStep === 3 ? 'Salary & Commission' : 'Documents & Finalize'}
                             </span>
                           </div>
                           <div className="relative">
                             <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
                               <div
                                 className="bg-gradient-to-r from-primary to-primary/80 h-3 rounded-full transition-all duration-500 ease-out shadow-sm"
-                                style={{ width: `${(addStaffCurrentStep / 3) * 100}%` }}
+                                style={{ width: `${(addStaffCurrentStep / 4) * 100}%` }}
                               ></div>
                             </div>
                             <div className="flex justify-between mt-2">
-                              {[1, 2, 3].map((step) => (
+                              {[1, 2, 3, 4].map((step) => (
                                 <div key={step} className="flex flex-col items-center">
                                   <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300 ${
                                     step <= addStaffCurrentStep
@@ -819,7 +876,7 @@ export default function AdminStaff() {
                               </div>
                               <div>
                                 <h3 className="text-xl font-bold text-gray-900">Professional Details</h3>
-                                <p className="text-sm text-gray-600">Add professional experience and specialties</p>
+                                <p className="text-sm text-gray-600">Add experience, status, and specialties</p>
                               </div>
                             </div>
 
@@ -929,7 +986,7 @@ export default function AdminStaff() {
                           </div>
                         )}
 
-                        {/* Step 3: Schedule & Finalize */}
+                        {/* Step 3: Salary & Commission */}
                         {addStaffCurrentStep === 3 && (
                           <div className="space-y-8 animate-in slide-in-from-right-5 duration-300">
                             <div className="flex items-center gap-4 pb-4 border-b border-gray-100">
@@ -937,29 +994,163 @@ export default function AdminStaff() {
                                 3
                               </div>
                               <div>
-                                <h3 className="text-xl font-bold text-gray-900">Schedule & Finalize</h3>
-                                <p className="text-sm text-gray-600">Set working hours and review all information</p>
+                                <h3 className="text-xl font-bold text-gray-900">Salary & Commission</h3>
+                                <p className="text-sm text-gray-600">Set salary and commission details</p>
                               </div>
                             </div>
 
-                            <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                              <Card className="border-2 border-gray-100 shadow-sm">
+                                <CardHeader className="pb-4 bg-gradient-to-r from-green-50 to-emerald-50 border-b border-green-100">
+                                  <CardTitle className="text-lg flex items-center gap-2">
+                                    <TrendingUp className="w-5 h-5 text-green-600" />
+                                    Salary Information
+                                  </CardTitle>
+                                  <CardDescription>Set the base salary for this staff member</CardDescription>
+                                </CardHeader>
+                                <CardContent className="p-6 space-y-4">
+                                  <div className="space-y-3">
+                                    <Label htmlFor="add-salary" className="text-sm font-semibold text-gray-700">Base Salary ($)</Label>
+                                    <Input
+                                      id="add-salary"
+                                      type="number"
+                                      placeholder="50000"
+                                      value={newStaff.salary || ''}
+                                      onChange={(e) => setNewStaff({...newStaff, salary: Number(e.target.value)})}
+                                      className="h-12 border-2 border-gray-200 focus:border-primary focus:ring-primary/20"
+                                    />
+                                    <p className="text-xs text-gray-500">Annual salary in USD</p>
+                                  </div>
+                                </CardContent>
+                              </Card>
+
+                              <Card className="border-2 border-gray-100 shadow-sm">
+                                <CardHeader className="pb-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-blue-100">
+                                  <CardTitle className="text-lg flex items-center gap-2">
+                                    <Star className="w-5 h-5 text-blue-600" />
+                                    Commission Details
+                                  </CardTitle>
+                                  <CardDescription>Set commission percentage and type</CardDescription>
+                                </CardHeader>
+                                <CardContent className="p-6 space-y-4">
+                                  <div className="space-y-3">
+                                    <Label htmlFor="add-commission" className="text-sm font-semibold text-gray-700">Commission (%)</Label>
+                                    <Input
+                                      id="add-commission"
+                                      type="number"
+                                      step="0.1"
+                                      placeholder="5.0"
+                                      value={newStaff.commission || ''}
+                                      onChange={(e) => setNewStaff({...newStaff, commission: Number(e.target.value)})}
+                                      className="h-12 border-2 border-gray-200 focus:border-primary focus:ring-primary/20"
+                                    />
+                                  </div>
+
+                                  <div className="space-y-3">
+                                    <Label htmlFor="add-commission-type" className="text-sm font-semibold text-gray-700">Commission Type</Label>
+                                    <Select
+                                      value={newStaff.commissionType}
+                                      onValueChange={(value) => setNewStaff({...newStaff, commissionType: value})}
+                                    >
+                                      <SelectTrigger className="h-12 border-2 border-gray-200 focus:border-primary">
+                                        <SelectValue placeholder="Select commission type" />
+                                      </SelectTrigger>
+                                      <SelectContent className="border-2">
+                                        <SelectItem value="barber">Barber (Default 5%)</SelectItem>
+                                        <SelectItem value="stylist">Stylist</SelectItem>
+                                        <SelectItem value="apprentice">Apprentice</SelectItem>
+                                        <SelectItem value="receptionist">Receptionist</SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                  </div>
+                                </CardContent>
+                              </Card>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Step 4: Documents & Schedule */}
+                        {addStaffCurrentStep === 4 && (
+                          <div className="space-y-8 animate-in slide-in-from-right-5 duration-300">
+                            <div className="flex items-center gap-4 pb-4 border-b border-gray-100">
+                              <div className="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center text-sm font-bold shadow-lg">
+                                4
+                              </div>
+                              <div>
+                                <h3 className="text-xl font-bold text-gray-900">Documents & Schedule</h3>
+                                <p className="text-sm text-gray-600">Upload documents and set working hours</p>
+                              </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+                              <Card className="border-2 border-gray-100 shadow-sm">
+                                <CardHeader className="pb-4 bg-gradient-to-r from-purple-50 to-pink-50 border-b border-purple-100">
+                                  <CardTitle className="text-lg flex items-center gap-2">
+                                    <Upload className="w-5 h-5 text-purple-600" />
+                                    Documents
+                                  </CardTitle>
+                                  <CardDescription>Upload ID card and set visa information</CardDescription>
+                                </CardHeader>
+                                <CardContent className="p-6 space-y-4">
+                                  <div className="space-y-3">
+                                    <Label htmlFor="add-id-card" className="text-sm font-semibold text-gray-700">ID Card Photo</Label>
+                                    <Input
+                                      id="add-id-card"
+                                      type="file"
+                                      accept="image/*"
+                                      onChange={(e) => {
+                                        const file = e.target.files?.[0];
+                                        if (file) {
+                                          const reader = new FileReader();
+                                          reader.onload = (e) => {
+                                            setNewStaff({...newStaff, idCardPhoto: e.target?.result as string});
+                                          };
+                                          reader.readAsDataURL(file);
+                                        }
+                                      }}
+                                      className="border-2 focus:border-primary"
+                                    />
+                                    {newStaff.idCardPhoto && (
+                                      <div className="w-20 h-12 bg-gray-100 rounded border overflow-hidden">
+                                        <img
+                                          src={newStaff.idCardPhoto}
+                                          alt="ID Card Preview"
+                                          className="w-full h-full object-cover"
+                                        />
+                                      </div>
+                                    )}
+                                  </div>
+
+                                  <div className="space-y-3">
+                                    <Label htmlFor="add-visa-expiry" className="text-sm font-semibold text-gray-700">Visa Expiry Date</Label>
+                                    <Input
+                                      id="add-visa-expiry"
+                                      type="date"
+                                      value={newStaff.visaExpiryDate}
+                                      onChange={(e) => setNewStaff({...newStaff, visaExpiryDate: e.target.value})}
+                                      className="h-12 border-2 border-gray-200 focus:border-primary focus:ring-primary/20"
+                                    />
+                                  </div>
+                                </CardContent>
+                              </Card>
+
                               <Card className="border-2 border-gray-100 shadow-sm">
                                 <CardHeader className="pb-6 bg-gradient-to-r from-green-50 to-emerald-50 border-b border-green-100">
                                   <CardTitle className="text-lg flex items-center gap-2">
                                     <Calendar className="w-5 h-5 text-green-600" />
                                     Weekly Schedule
                                   </CardTitle>
-                                  <CardDescription>Set the working hours for each day of the week</CardDescription>
+                                  <CardDescription>Set the working hours for each day</CardDescription>
                                 </CardHeader>
-                                <CardContent className="p-6 space-y-4">
+                                <CardContent className="p-6 space-y-3 max-h-80 overflow-y-auto">
                                   {Object.entries(newStaff.schedule).map(([day, hours]) => (
-                                    <div key={day} className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg border border-gray-100 hover:bg-gray-100 transition-colors duration-200">
-                                      <Label className="w-24 capitalize text-sm font-semibold text-gray-700 flex-shrink-0">{day}:</Label>
+                                    <div key={day} className="flex items-center gap-3 p-2 bg-gray-50 rounded-lg border border-gray-100">
+                                      <Label className="w-20 capitalize text-sm font-semibold text-gray-700 flex-shrink-0">{day}:</Label>
                                       <Input
                                         value={hours}
                                         onChange={(e) => updateSchedule(day, e.target.value)}
-                                        placeholder="e.g., 9AM-7PM or Closed"
-                                        className="flex-1 h-10 border-2 border-gray-200 focus:border-primary focus:ring-primary/20"
+                                        placeholder="9AM-7PM"
+                                        className="flex-1 h-8 border-2 border-gray-200 focus:border-primary focus:ring-primary/20 text-sm"
                                       />
                                     </div>
                                   ))}
@@ -967,36 +1158,44 @@ export default function AdminStaff() {
                               </Card>
 
                               <Card className="border-2 border-gray-100 shadow-sm bg-gradient-to-br from-blue-50 to-indigo-50">
-                                <CardHeader className="pb-6">
+                                <CardHeader className="pb-4">
                                   <CardTitle className="text-lg flex items-center gap-2">
                                     <Eye className="w-5 h-5 text-blue-600" />
                                     Review Information
                                   </CardTitle>
-                                  <CardDescription>Please review all entered information before adding the staff member</CardDescription>
+                                  <CardDescription>Review all entered information</CardDescription>
                                 </CardHeader>
-                                <CardContent className="space-y-4">
-                                  <div className="grid grid-cols-1 gap-3 text-sm">
-                                    <div className="flex justify-between items-center p-3 bg-white rounded-lg border border-gray-200">
+                                <CardContent className="space-y-3 max-h-80 overflow-y-auto">
+                                  <div className="grid grid-cols-1 gap-2 text-sm">
+                                    <div className="flex justify-between items-center p-2 bg-white rounded border">
                                       <span className="font-semibold text-gray-600">Name:</span>
                                       <span className="font-medium text-gray-900">{newStaff.name || 'Not provided'}</span>
                                     </div>
-                                    <div className="flex justify-between items-center p-3 bg-white rounded-lg border border-gray-200">
+                                    <div className="flex justify-between items-center p-2 bg-white rounded border">
                                       <span className="font-semibold text-gray-600">Role:</span>
                                       <span className="font-medium text-gray-900">{newStaff.role || 'Not selected'}</span>
                                     </div>
-                                    <div className="flex justify-between items-center p-3 bg-white rounded-lg border border-gray-200">
+                                    <div className="flex justify-between items-center p-2 bg-white rounded border">
                                       <span className="font-semibold text-gray-600">Email:</span>
                                       <span className="font-medium text-gray-900">{newStaff.email || 'Not provided'}</span>
                                     </div>
-                                    <div className="flex justify-between items-center p-3 bg-white rounded-lg border border-gray-200">
+                                    <div className="flex justify-between items-center p-2 bg-white rounded border">
                                       <span className="font-semibold text-gray-600">Phone:</span>
                                       <span className="font-medium text-gray-900">{newStaff.phone || 'Not provided'}</span>
                                     </div>
-                                    <div className="flex justify-between items-center p-3 bg-white rounded-lg border border-gray-200">
+                                    <div className="flex justify-between items-center p-2 bg-white rounded border">
                                       <span className="font-semibold text-gray-600">Experience:</span>
                                       <span className="font-medium text-gray-900">{newStaff.experience || 'Not provided'}</span>
                                     </div>
-                                    <div className="flex justify-between items-center p-3 bg-white rounded-lg border border-gray-200">
+                                    <div className="flex justify-between items-center p-2 bg-white rounded border">
+                                      <span className="font-semibold text-gray-600">Salary:</span>
+                                      <span className="font-medium text-gray-900">${newStaff.salary ? newStaff.salary.toLocaleString() : 'Not set'}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center p-2 bg-white rounded border">
+                                      <span className="font-semibold text-gray-600">Commission:</span>
+                                      <span className="font-medium text-gray-900">{newStaff.commission ? `${newStaff.commission}%` : 'Not set'}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center p-2 bg-white rounded border">
                                       <span className="font-semibold text-gray-600">Status:</span>
                                       <Badge className={`capitalize ${getStatusColor(newStaff.status)}`}>
                                         {getStatusIcon(newStaff.status)}
@@ -1005,11 +1204,11 @@ export default function AdminStaff() {
                                     </div>
                                   </div>
                                   {newStaff.specialties.length > 0 && (
-                                    <div className="p-4 bg-white rounded-lg border-2 border-gray-200">
+                                    <div className="p-3 bg-white rounded-lg border-2 border-gray-200 mt-3">
                                       <span className="font-semibold text-gray-600 block mb-2">Specialties:</span>
-                                      <div className="flex flex-wrap gap-2">
+                                      <div className="flex flex-wrap gap-1">
                                         {newStaff.specialties.map((specialty, index) => (
-                                          <Badge key={index} variant="outline" className="border-gray-300">
+                                          <Badge key={index} variant="outline" className="text-xs">
                                             {specialty}
                                           </Badge>
                                         ))}
@@ -1048,7 +1247,7 @@ export default function AdminStaff() {
                               <X className="w-4 h-4 mr-2" />
                               Cancel
                             </Button>
-                            {addStaffCurrentStep < 3 ? (
+                            {addStaffCurrentStep < 4 ? (
                               <Button
                                 onClick={() => setAddStaffCurrentStep(prev => prev + 1)}
                                 className="px-6 py-3 bg-primary hover:bg-primary/90 text-white shadow-lg hover:shadow-xl transition-all duration-200"
@@ -1784,16 +1983,117 @@ export default function AdminStaff() {
                   </div>
                 </div>
 
-                {/* Schedule */}
+                {/* Salary & Commission */}
                 <div className="space-y-4">
-                  <Label className="text-base font-medium">Weekly Schedule</Label>
-                  <div className="space-y-2">
-                    {Object.entries(selectedStaff.schedule).map(([day, hours]) => (
-                      <div key={day} className="flex justify-between items-center py-2 px-3 bg-gray-50 rounded-md">
-                        <span className="font-medium capitalize text-sm">{day}</span>
-                        <span className="text-sm text-gray-600">{hours}</span>
+                  <Label className="text-base font-medium">Salary & Commission</Label>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="edit-salary">Base Salary ($)</Label>
+                      {isEditing ? (
+                        <Input
+                          id="edit-salary"
+                          type="number"
+                          value={editedStaff.salary || ''}
+                          onChange={(e) => setEditedStaff({...editedStaff, salary: Number(e.target.value)})}
+                        />
+                      ) : (
+                        <p className="text-sm font-medium p-2 bg-gray-50 rounded-md">${selectedStaff.salary?.toLocaleString()}</p>
+                      )}
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="edit-commission">Commission (%)</Label>
+                      {isEditing ? (
+                        <Input
+                          id="edit-commission"
+                          type="number"
+                          step="0.1"
+                          value={editedStaff.commission || ''}
+                          onChange={(e) => setEditedStaff({...editedStaff, commission: Number(e.target.value)})}
+                        />
+                      ) : (
+                        <p className="text-sm font-medium p-2 bg-gray-50 rounded-md">{selectedStaff.commission}%</p>
+                      )}
+                    </div>
+                    <div className="space-y-2 md:col-span-2">
+                      <Label htmlFor="edit-commission-type">Commission Type</Label>
+                      {isEditing ? (
+                        <Select
+                          value={editedStaff.commissionType || ''}
+                          onValueChange={(value) => setEditedStaff({...editedStaff, commissionType: value})}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="barber">Barber (Default 5%)</SelectItem>
+                            <SelectItem value="stylist">Stylist</SelectItem>
+                            <SelectItem value="apprentice">Apprentice</SelectItem>
+                            <SelectItem value="receptionist">Receptionist</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <p className="text-sm font-medium p-2 bg-gray-50 rounded-md capitalize">{selectedStaff.commissionType}</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* ID Card Photo */}
+                <div className="space-y-4">
+                  <Label className="text-base font-medium">ID Card Photo</Label>
+                  <div className="flex items-center gap-4">
+                    <div className="w-32 h-20 bg-gray-100 rounded-lg overflow-hidden border">
+                      <img
+                        src={isEditing ? editedStaff.idCardPhoto || selectedStaff.idCardPhoto : selectedStaff.idCardPhoto}
+                        alt="ID Card"
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    {isEditing && (
+                      <div className="flex-1">
+                        <Input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              const reader = new FileReader();
+                              reader.onload = (e) => {
+                                setEditedStaff({...editedStaff, idCardPhoto: e.target?.result as string});
+                              };
+                              reader.readAsDataURL(file);
+                            }
+                          }}
+                        />
                       </div>
-                    ))}
+                    )}
+                  </div>
+                </div>
+
+                {/* Visa Information */}
+                <div className="space-y-4">
+                  <Label className="text-base font-medium">Visa Information</Label>
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-visa-expiry">Visa Expiry Date</Label>
+                    {isEditing ? (
+                      <Input
+                        id="edit-visa-expiry"
+                        type="date"
+                        value={editedStaff.visaExpiryDate || ''}
+                        onChange={(e) => setEditedStaff({...editedStaff, visaExpiryDate: e.target.value})}
+                      />
+                    ) : (
+                      <div className="flex items-center gap-2 p-2 bg-gray-50 rounded-md">
+                        <Calendar className="w-4 h-4 text-gray-500" />
+                        <span className="text-sm">{new Date(selectedStaff.visaExpiryDate).toLocaleDateString()}</span>
+                        {isVisaExpiringSoon(selectedStaff.visaExpiryDate) && (
+                          <Badge variant="destructive" className="ml-auto">
+                            <AlertTriangle className="w-3 h-3 mr-1" />
+                            Expiring Soon
+                          </Badge>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
 
